@@ -1,26 +1,294 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* ============================
+     Primary Brand - Burnt Peach
+     ============================ */
+
+  --color-burnt-peach-50: #fdece8;
+  --color-burnt-peach-100: #fbd9d0;
+  --color-burnt-peach-200: #f6b3a2;
+  --color-burnt-peach-300: #f28c73;
+  --color-burnt-peach-400: #ee6644;
+  --color-burnt-peach-500: #e94016;
+  --color-burnt-peach-600: #bb3311;
+  --color-burnt-peach-700: #8c260d;
+  --color-burnt-peach-800: #5d1a09;
+  --color-burnt-peach-900: #2f0d04;
+  --color-burnt-peach-950: #210903;
+
+  /* ============================
+     Trust - Steel Blue
+     ============================ */
+
+  --color-steel-blue-50: #f1f7fa;
+  --color-steel-blue-100: #dcecf5;
+  --color-steel-blue-200: #bad8eb;
+  --color-steel-blue-300: #8fc0dd;
+  --color-steel-blue-400: #5d9fc8;
+  --color-steel-blue-500: #3e7ca8;
+  --color-steel-blue-600: #2f6285;
+  --color-steel-blue-700: #244c66;
+  --color-steel-blue-800: #193447;
+  --color-steel-blue-900: #0f202d;
+  --color-steel-blue-950: #09131a;
+
+  /* ============================
+     Success - Verdigris
+     ============================ */
+
+  --color-verdigris-50: #e9fcfa;
+  --color-verdigris-100: #d2f9f5;
+  --color-verdigris-200: #a6f2ec;
+  --color-verdigris-300: #79ece2;
+  --color-verdigris-400: #4ce6d9;
+  --color-verdigris-500: #20dfcf;
+  --color-verdigris-600: #19b3a6;
+  --color-verdigris-700: #13867c;
+  --color-verdigris-800: #0d5953;
+  --color-verdigris-900: #062d29;
+  --color-verdigris-950: #041f1d;
+
+  /* ============================
+     Neutral - Stone
+     ============================ */
+
+  --color-stone-50: #fafaf8;
+  --color-stone-100: #f2f1ee;
+  --color-stone-200: #e3e1db;
+  --color-stone-300: #d0cdc5;
+  --color-stone-400: #b8b3a8;
+  --color-stone-500: #9c968a;
+  --color-stone-600: #7d776c;
+  --color-stone-700: #605b52;
+  --color-stone-800: #433f38;
+  --color-stone-900: #27241f;
+  --color-stone-950: #171512;
+
+  /* ============================
+     Neutral - Graphite
+     ============================ */
+
+  --color-graphite-50: #f3f2f2;
+  --color-graphite-100: #e7e6e4;
+  --color-graphite-200: #cfcdc9;
+  --color-graphite-300: #b6b3af;
+  --color-graphite-400: #9e9a94;
+  --color-graphite-500: #868179;
+  --color-graphite-600: #6b6761;
+  --color-graphite-700: #504d49;
+  --color-graphite-800: #363430;
+  --color-graphite-900: #1b1a18;
+  --color-graphite-950: #131211;
+}
+
+/* =====================================
+   Global Styles
+===================================== */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+
+  --background: var(--color-stone-50);
+  --foreground: var(--color-graphite-900);
+
+  --card: oklch(1 0 0);
+  --card-foreground: var(--color-graphite-900);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--color-graphite-900);
+
+  --primary: var(--color-burnt-peach-500);
+  --primary-foreground: var(--color-stone-50);
+  --primary-hover: var(--color-burnt-peach-600);
+
+  --secondary: var(--color-steel-blue-50);
+  --secondary-foreground: var(--color-steel-blue-800);
+  --secondary-hover: var(--color-steel-blue-600);
+
+  --accent: var(--color-verdigris-50);
+  --accent-foreground: var(--color-verdigris-800);
+
+  --muted: var(--color-stone-100);
+  --muted-foreground: var(--color-graphite-500);
+
+  --border: var(--color-stone-200);
+  --input: var(--color-stone-200);
+  --ring: var(--color-burnt-peach-400);
+
+  --success: var(--color-verdigris-500);
+  --warning: #f59e0b;
+  --error: #dc2626;
+  --destructive: var(--error);
+
+  --chart-1: var(--color-burnt-peach-500);
+  --chart-2: var(--color-steel-blue-500);
+  --chart-3: var(--color-verdigris-600);
+  --chart-4: var(--color-stone-500);
+  --chart-5: var(--color-graphite-500);
+
+  --radius: 0.625rem;
+
+  --sidebar: var(--color-stone-50);
+  --sidebar-foreground: var(--color-graphite-900);
+  --sidebar-primary: var(--color-burnt-peach-500);
+  --sidebar-primary-foreground: var(--color-stone-50);
+  --sidebar-accent: var(--color-steel-blue-50);
+  --sidebar-accent-foreground: var(--color-steel-blue-800);
+  --sidebar-border: var(--color-stone-200);
+  --sidebar-ring: var(--color-burnt-peach-400);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+@theme inline {
+
+  --font-heading: var(--font-sans);
+
+  --font-sans: var(--font-sans);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+
+  --color-chart-4: var(--chart-4);
+
+  --color-chart-3: var(--chart-3);
+
+  --color-chart-2: var(--chart-2);
+
+  --color-chart-1: var(--chart-1);
+
+  --color-ring: var(--ring);
+
+  --color-input: var(--input);
+
+  --color-border: var(--border);
+
+  --color-destructive: var(--destructive);
+
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-accent: var(--accent);
+
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-muted: var(--muted);
+
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-secondary: var(--secondary);
+
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-primary: var(--primary);
+
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-popover: var(--popover);
+
+  --color-card-foreground: var(--card-foreground);
+
+  --color-card: var(--card);
+
+  --color-foreground: var(--foreground);
+
+  --color-background: var(--background);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+
+  --radius-md: calc(var(--radius) * 0.8);
+
+  --radius-lg: var(--radius);
+
+  --radius-xl: calc(var(--radius) * 1.4);
+
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  --radius-3xl: calc(var(--radius) * 2.2);
+
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+.dark {
+
+  --background: var(--color-graphite-950);
+  --foreground: var(--color-stone-50);
+
+  --card: var(--color-graphite-900);
+  --card-foreground: var(--color-stone-50);
+
+  --popover: var(--color-graphite-900);
+  --popover-foreground: var(--color-stone-50);
+
+  --primary: var(--color-burnt-peach-400);
+  --primary-foreground: var(--color-graphite-950);
+  --primary-hover: var(--color-burnt-peach-300);
+
+  --secondary: var(--color-graphite-800);
+  --secondary-foreground: var(--color-stone-50);
+  --secondary-hover: var(--color-steel-blue-500);
+
+  --accent: var(--color-verdigris-900);
+  --accent-foreground: var(--color-verdigris-200);
+
+  --muted: var(--color-graphite-800);
+  --muted-foreground: var(--color-graphite-400);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--color-burnt-peach-500);
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --chart-1: var(--color-burnt-peach-400);
+  --chart-2: var(--color-steel-blue-400);
+  --chart-3: var(--color-verdigris-400);
+  --chart-4: var(--color-stone-400);
+  --chart-5: var(--color-graphite-400);
+
+  --sidebar: var(--color-graphite-900);
+  --sidebar-foreground: var(--color-stone-50);
+  --sidebar-primary: var(--color-burnt-peach-400);
+  --sidebar-primary-foreground: var(--color-graphite-950);
+  --sidebar-accent: var(--color-graphite-800);
+  --sidebar-accent-foreground: var(--color-stone-50);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--color-burnt-peach-500);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }
