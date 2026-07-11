@@ -6,84 +6,89 @@
 
 @theme {
   /* ============================
-     Primary Brand - Burnt Peach
+     Lavender — lightest, airy cool blue
+     Base: #c5d1eb / hsla(221, 49%, 85%, 1)
      ============================ */
 
-  --color-burnt-peach-50: #fdece8;
-  --color-burnt-peach-100: #fbd9d0;
-  --color-burnt-peach-200: #f6b3a2;
-  --color-burnt-peach-300: #f28c73;
-  --color-burnt-peach-400: #ee6644;
-  --color-burnt-peach-500: #e94016;
-  --color-burnt-peach-600: #bb3311;
-  --color-burnt-peach-700: #8c260d;
-  --color-burnt-peach-800: #5d1a09;
-  --color-burnt-peach-900: #2f0d04;
-  --color-burnt-peach-950: #210903;
+  --color-lavender-50: #f0f3f9;
+  --color-lavender-100: #e2e7f4;
+  --color-lavender-200: #c5d1eb;
+  --color-lavender-300: #a8badf;
+  --color-lavender-400: #8ba3d3;
+  --color-lavender-500: #6e8cc7;
+  --color-lavender-600: #5876b8;
+  --color-lavender-700: #45609a;
+  --color-lavender-800: #344a76;
+  --color-lavender-900: #233352;
+  --color-lavender-950: #172239;
 
   /* ============================
-     Trust - Steel Blue
+     Powder Blue — mid-light blue
+     Base: #92afd7 / hsla(215, 46%, 71%, 1)
      ============================ */
 
-  --color-steel-blue-50: #f1f7fa;
-  --color-steel-blue-100: #dcecf5;
-  --color-steel-blue-200: #bad8eb;
-  --color-steel-blue-300: #8fc0dd;
-  --color-steel-blue-400: #5d9fc8;
-  --color-steel-blue-500: #3e7ca8;
-  --color-steel-blue-600: #2f6285;
-  --color-steel-blue-700: #244c66;
-  --color-steel-blue-800: #193447;
-  --color-steel-blue-900: #0f202d;
-  --color-steel-blue-950: #09131a;
+  --color-powder-blue-50: #eef3fa;
+  --color-powder-blue-100: #dce7f4;
+  --color-powder-blue-200: #b9cfea;
+  --color-powder-blue-300: #92afd7;
+  --color-powder-blue-400: #7198ca;
+  --color-powder-blue-500: #5482bd;
+  --color-powder-blue-600: #416ba4;
+  --color-powder-blue-700: #335484;
+  --color-powder-blue-800: #253d61;
+  --color-powder-blue-900: #18283f;
+  --color-powder-blue-950: #0f1a2a;
 
   /* ============================
-     Success - Verdigris
+     Blue Slate — muted teal-blue mid-tone
+     Base: #5a7684 / hsla(200, 19%, 44%, 1)
      ============================ */
 
-  --color-verdigris-50: #e9fcfa;
-  --color-verdigris-100: #d2f9f5;
-  --color-verdigris-200: #a6f2ec;
-  --color-verdigris-300: #79ece2;
-  --color-verdigris-400: #4ce6d9;
-  --color-verdigris-500: #20dfcf;
-  --color-verdigris-600: #19b3a6;
-  --color-verdigris-700: #13867c;
-  --color-verdigris-800: #0d5953;
-  --color-verdigris-900: #062d29;
-  --color-verdigris-950: #041f1d;
+  --color-blue-slate-50: #f0f4f6;
+  --color-blue-slate-100: #dfe7eb;
+  --color-blue-slate-200: #bfcfd6;
+  --color-blue-slate-300: #9bb3be;
+  --color-blue-slate-400: #7a97a4;
+  --color-blue-slate-500: #5a7684;
+  --color-blue-slate-600: #4a626e;
+  --color-blue-slate-700: #3a4d57;
+  --color-blue-slate-800: #2a3840;
+  --color-blue-slate-900: #1b242a;
+  --color-blue-slate-950: #11171b;
 
   /* ============================
-     Neutral - Stone
+     Granite — deep green-teal
+     Base: #395b50 / hsla(161, 23%, 29%, 1)
      ============================ */
 
-  --color-stone-50: #fafaf8;
-  --color-stone-100: #f2f1ee;
-  --color-stone-200: #e3e1db;
-  --color-stone-300: #d0cdc5;
-  --color-stone-400: #b8b3a8;
-  --color-stone-500: #9c968a;
-  --color-stone-600: #7d776c;
-  --color-stone-700: #605b52;
-  --color-stone-800: #433f38;
-  --color-stone-900: #27241f;
-  --color-stone-950: #171512;
+  --color-granite-50: #eef3f2;
+  --color-granite-100: #dce8e5;
+  --color-granite-200: #b5cec7;
+  --color-granite-300: #8db3a8;
+  --color-granite-400: #63968a;
+  --color-granite-500: #497a6d;
+  --color-granite-600: #395b50;
+  --color-granite-700: #2e4a41;
+  --color-granite-800: #223632;
+  --color-granite-900: #162322;
+  --color-granite-950: #0d1614;
 
   /* ============================
-     Neutral - Graphite
+     Evergreen — darkest, near-black green
+     Base: #1f2f16 / hsla(98, 36%, 14%, 1)
      ============================ */
 
-  --color-graphite-50: #f3f2f2;
-  --color-graphite-100: #e7e6e4;
-  --color-graphite-200: #cfcdc9;
-  --color-graphite-300: #b6b3af;
-  --color-graphite-400: #9e9a94;
-  --color-graphite-500: #868179;
-  --color-graphite-600: #6b6761;
-  --color-graphite-700: #504d49;
-  --color-graphite-800: #363430;
-  --color-graphite-900: #1b1a18;
-  --color-graphite-950: #131211;
+  --color-evergreen-50: #f0f3ed;
+  --color-evergreen-100: #dde5d6;
+  --color-evergreen-200: #b8c8a9;
+  --color-evergreen-300: #8fa87a;
+  --color-evergreen-400: #6a8851;
+  --color-evergreen-500: #4f6a3a;
+  --color-evergreen-600: #3b5129;
+  --color-evergreen-700: #2d3f1f;
+  --color-evergreen-800: #1f2f16;
+  --color-evergreen-900: #141f0e;
+  --color-evergreen-950: #0b1208;
 }
 
 /* =====================================
@@ -92,54 +97,54 @@
 
 :root {
 
-  --background: var(--color-stone-50);
-  --foreground: var(--color-graphite-900);
+  --background: var(--color-lavender-50);
+  --foreground: var(--color-evergreen-800);
 
   --card: oklch(1 0 0);
-  --card-foreground: var(--color-graphite-900);
+  --card-foreground: var(--color-evergreen-800);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: var(--color-graphite-900);
+  --popover-foreground: var(--color-evergreen-800);
 
-  --primary: var(--color-burnt-peach-500);
-  --primary-foreground: var(--color-stone-50);
-  --primary-hover: var(--color-burnt-peach-600);
+  --primary: var(--color-granite-600);
+  --primary-foreground: var(--color-lavender-50);
+  --primary-hover: var(--color-granite-700);
 
-  --secondary: var(--color-steel-blue-50);
-  --secondary-foreground: var(--color-steel-blue-800);
-  --secondary-hover: var(--color-steel-blue-600);
+  --secondary: var(--color-powder-blue-50);
+  --secondary-foreground: var(--color-powder-blue-800);
+  --secondary-hover: var(--color-powder-blue-600);
 
-  --accent: var(--color-verdigris-50);
-  --accent-foreground: var(--color-verdigris-800);
+  --accent: var(--color-blue-slate-50);
+  --accent-foreground: var(--color-blue-slate-700);
 
-  --muted: var(--color-stone-100);
-  --muted-foreground: var(--color-graphite-500);
+  --muted: var(--color-lavender-100);
+  --muted-foreground: var(--color-blue-slate-500);
 
-  --border: var(--color-stone-200);
-  --input: var(--color-stone-200);
-  --ring: var(--color-burnt-peach-400);
+  --border: var(--color-lavender-200);
+  --input: var(--color-lavender-200);
+  --ring: var(--color-granite-500);
 
-  --success: var(--color-verdigris-500);
+  --success: var(--color-evergreen-500);
   --warning: #f59e0b;
   --error: #dc2626;
   --destructive: var(--error);
 
-  --chart-1: var(--color-burnt-peach-500);
-  --chart-2: var(--color-steel-blue-500);
-  --chart-3: var(--color-verdigris-600);
-  --chart-4: var(--color-stone-500);
-  --chart-5: var(--color-graphite-500);
+  --chart-1: var(--color-granite-600);
+  --chart-2: var(--color-powder-blue-500);
+  --chart-3: var(--color-blue-slate-500);
+  --chart-4: var(--color-lavender-500);
+  --chart-5: var(--color-evergreen-500);
 
   --radius: 0.625rem;
 
-  --sidebar: var(--color-stone-50);
-  --sidebar-foreground: var(--color-graphite-900);
-  --sidebar-primary: var(--color-burnt-peach-500);
-  --sidebar-primary-foreground: var(--color-stone-50);
-  --sidebar-accent: var(--color-steel-blue-50);
-  --sidebar-accent-foreground: var(--color-steel-blue-800);
-  --sidebar-border: var(--color-stone-200);
-  --sidebar-ring: var(--color-burnt-peach-400);
+  --sidebar: var(--color-lavender-50);
+  --sidebar-foreground: var(--color-evergreen-800);
+  --sidebar-primary: var(--color-granite-600);
+  --sidebar-primary-foreground: var(--color-lavender-50);
+  --sidebar-accent: var(--color-powder-blue-50);
+  --sidebar-accent-foreground: var(--color-powder-blue-800);
+  --sidebar-border: var(--color-lavender-200);
+  --sidebar-ring: var(--color-granite-500);
 }
 
 html {
@@ -236,49 +241,49 @@ body {
 
 .dark {
 
-  --background: var(--color-graphite-950);
-  --foreground: var(--color-stone-50);
+  --background: var(--color-evergreen-950);
+  --foreground: var(--color-lavender-50);
 
-  --card: var(--color-graphite-900);
-  --card-foreground: var(--color-stone-50);
+  --card: var(--color-evergreen-900);
+  --card-foreground: var(--color-lavender-50);
 
-  --popover: var(--color-graphite-900);
-  --popover-foreground: var(--color-stone-50);
+  --popover: var(--color-evergreen-900);
+  --popover-foreground: var(--color-lavender-50);
 
-  --primary: var(--color-burnt-peach-400);
-  --primary-foreground: var(--color-graphite-950);
-  --primary-hover: var(--color-burnt-peach-300);
+  --primary: var(--color-powder-blue-300);
+  --primary-foreground: var(--color-evergreen-950);
+  --primary-hover: var(--color-powder-blue-200);
 
-  --secondary: var(--color-graphite-800);
-  --secondary-foreground: var(--color-stone-50);
-  --secondary-hover: var(--color-steel-blue-500);
+  --secondary: var(--color-evergreen-800);
+  --secondary-foreground: var(--color-lavender-50);
+  --secondary-hover: var(--color-powder-blue-500);
 
-  --accent: var(--color-verdigris-900);
-  --accent-foreground: var(--color-verdigris-200);
+  --accent: var(--color-blue-slate-900);
+  --accent-foreground: var(--color-blue-slate-200);
 
-  --muted: var(--color-graphite-800);
-  --muted-foreground: var(--color-graphite-400);
+  --muted: var(--color-evergreen-800);
+  --muted-foreground: var(--color-blue-slate-400);
 
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: var(--color-burnt-peach-500);
+  --ring: var(--color-granite-500);
 
   --destructive: oklch(0.704 0.191 22.216);
 
-  --chart-1: var(--color-burnt-peach-400);
-  --chart-2: var(--color-steel-blue-400);
-  --chart-3: var(--color-verdigris-400);
-  --chart-4: var(--color-stone-400);
-  --chart-5: var(--color-graphite-400);
+  --chart-1: var(--color-powder-blue-300);
+  --chart-2: var(--color-blue-slate-400);
+  --chart-3: var(--color-granite-400);
+  --chart-4: var(--color-lavender-400);
+  --chart-5: var(--color-evergreen-400);
 
-  --sidebar: var(--color-graphite-900);
-  --sidebar-foreground: var(--color-stone-50);
-  --sidebar-primary: var(--color-burnt-peach-400);
-  --sidebar-primary-foreground: var(--color-graphite-950);
-  --sidebar-accent: var(--color-graphite-800);
-  --sidebar-accent-foreground: var(--color-stone-50);
+  --sidebar: var(--color-evergreen-900);
+  --sidebar-foreground: var(--color-lavender-50);
+  --sidebar-primary: var(--color-powder-blue-300);
+  --sidebar-primary-foreground: var(--color-evergreen-950);
+  --sidebar-accent: var(--color-evergreen-800);
+  --sidebar-accent-foreground: var(--color-lavender-50);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--color-burnt-peach-500);
+  --sidebar-ring: var(--color-granite-500);
 }
 
 @layer base {

@@ -1,50 +1,13 @@
 globalThis.__BUILD_MANIFEST = {
   "pages": {
-    "/_app": [
-      "static/chunks/0u0w_next_dist_compiled_1c-7ikh._.js",
-      "static/chunks/0u0w_next_dist_shared_lib_1yj67aw._.js",
-      "static/chunks/0u0w_next_dist_client_0y2zea7._.js",
-      "static/chunks/0u0w_next_dist_0olb-x7._.js",
-      "static/chunks/0u0w_next_app_0i3uwih.js",
-      "static/chunks/[next]_entry_page-loader_ts_1wyn99_._.js",
-      "static/chunks/0u0w_react-dom_0tgy13z._.js",
-      "static/chunks/0u0w_0wilv5d._.js",
-      "static/chunks/[root-of-the-server]__1gh25ns._.js",
-      "static/chunks/Desktop_Projects_servixa_frontend_pages__app_0du2_q-._.js",
-      "static/chunks/turbopack-Desktop_Projects_servixa_frontend_pages__app_0c3hl8w._.js"
-    ],
-    "/_error": [
-      "static/chunks/0u0w_next_dist_compiled_1c-7ikh._.js",
-      "static/chunks/0u0w_next_dist_shared_lib_1wybp21._.js",
-      "static/chunks/0u0w_next_dist_client_0y2zea7._.js",
-      "static/chunks/0u0w_next_dist_1v-qycj._.js",
-      "static/chunks/[next]_entry_page-loader_ts_1n--wsv._.js",
-      "static/chunks/0u0w_react-dom_0tgy13z._.js",
-      "static/chunks/0u0w_0wilv5d._.js",
-      "static/chunks/[root-of-the-server]__0bmvmu7._.js",
-      "static/chunks/Desktop_Projects_servixa_frontend_pages__error_0du2_q-._.js",
-      "static/chunks/turbopack-Desktop_Projects_servixa_frontend_pages__error_0-8i7w_._.js"
-    ]
+    "/_app": []
   },
   "devFiles": [],
-  "polyfillFiles": [
-    "static/chunks/0u0w_next_dist_build_polyfills_polyfill-nomodule.js"
-  ],
+  "polyfillFiles": [],
   "lowPriorityFiles": [
     "static/development/_buildManifest.js",
     "static/development/_ssgManifest.js",
     "static/development/_clientMiddlewareManifest.js"
   ],
-  "rootMainFiles": [
-    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_13lth8f._.js",
-    "static/chunks/0u0w_next_dist_compiled_next-devtools_index_06ve5ug.js",
-    "static/chunks/0u0w_next_dist_compiled_react-dom_1r98lb1._.js",
-    "static/chunks/0u0w_next_dist_compiled_react-server-dom-turbopack_0mqjp2a._.js",
-    "static/chunks/0u0w_next_dist_compiled_0spx51m._.js",
-    "static/chunks/0u0w_next_dist_client_1rz4z3b._.js",
-    "static/chunks/0u0w_next_dist_18ejcnv._.js",
-    "static/chunks/0u0w_@swc_helpers_cjs_1oxmljc._.js",
-    "static/chunks/Desktop_Projects_servixa_frontend_1anvha4._.js",
-    "static/chunks/turbopack-Desktop_Projects_servixa_frontend_0kb7tnn._.js"
-  ]
+  "rootMainFiles": []
 };
