@@ -28,7 +28,7 @@ const STATS = [
 
 export default function MainPage() {
   return (
-    <div className="dark hero-grid min-h-dvh bg-background text-foreground">
+    <div className="hero-grid min-h-dvh bg-background text-foreground">
       <Navbar />
       <ProfileMenu />
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import ThemeToggle from "../../../components/ThemeToggle";
 
 const NAV_LINKS = [
   { label: "Find Contractors", href: "#find" },
@@ -61,13 +62,16 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Right — auth CTA */}
-        <Link
-          href="/pages/auth/login"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[var(--primary-hover)]"
-        >
-          Login / Signup
-        </Link>
+        {/* Right — theme switcher + auth CTA */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link
+            href="/pages/auth/login"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[var(--primary-hover)]"
+          >
+            Login / Signup
+          </Link>
+        </div>
       </nav>
     </header>
   );

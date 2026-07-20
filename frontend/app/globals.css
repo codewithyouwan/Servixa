@@ -330,6 +330,28 @@ body {
   background-size: 56px 56px;
 }
 
+/* Blinking caret for the mock terminal on the auth page */
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.terminal-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background-color: var(--primary);
+  animation: caret-blink 1.1s step-end infinite;
+}
+
 /* Staggered hero entrance */
 @keyframes fade-up {
   from {
@@ -360,7 +382,8 @@ body {
     transition: none;
   }
   .dropdown-enter,
-  .fade-up {
+  .fade-up,
+  .terminal-caret {
     animation: none;
   }
 }
