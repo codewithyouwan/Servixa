@@ -5,6 +5,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- #region ENUMS, DOMAINS & LOOKUPS
 -- ==========================================
 
+
 CREATE TYPE user_type AS ENUM ('homeowner', 'contractor', 'company');
 CREATE TYPE contractor_type AS ENUM ('individual', 'organization');
 CREATE TYPE project_status AS ENUM ('pending', 'in_progress', 'completed', 'delayed', 'cancelled');
