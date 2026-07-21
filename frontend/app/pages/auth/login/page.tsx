@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
-import { LoginSignupCard } from "../../../components/auth/loginSignup";
+
+import { AuthLayout } from "@/app/components/auth/auth-layout";
+import { LoginForm } from "@/app/components/auth/login-form";
 
 export const metadata: Metadata = {
-  title: "Log in or sign up",
+  title: "Login — Servixa",
+  description:
+    "Log in to Servixa to manage your home projects, quotes, and messages.",
 };
 
 export default function LoginPage() {
   return (
-    <div className="bg-transparent">
-      <div className="flex min-h-dvh w-full items-center justify-center bg-background p-4">
-        <LoginSignupCard />
-      </div>
-    </div>
+    <AuthLayout
+      panelTitle="Your projects, one trusted place."
+      panelDescription="Pick up where you left off — track quotes, message service providers, and watch your project progress in real time."
+    >
+      <LoginForm />
+    </AuthLayout>
   );
 }
