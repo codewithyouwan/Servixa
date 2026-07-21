@@ -3,7 +3,7 @@
 ## 1. The two CTAs, and the rule for using them
 
 There are exactly two primary conversion CTAs on this entire site:
-- **"Post Your Project Free →"** (homeowner)
+- **"Post Your Project Free →"** (homeowner). s
 - **"Join as a Contractor →"** (contractor)
 
 Every other button on the site (Learn More, See Pricing, Read Reviews) is a secondary, informational CTA that exists to move a visitor toward one of these two, not to compete with them. Diluting the site with multiple "primary-feeling" CTAs (Sign Up, Get Started, Learn AI, Try Now) is the most common way marketplace marketing sites confuse visitors about what action actually matters — every page in this spec should be checked against this rule.
