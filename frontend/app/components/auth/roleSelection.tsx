@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { SquareUserRound, HardHat, Building2, ArrowRight, Check } from "lucide-react";
 
-export type UserRole = "company" | "contractor" | "homeowner";
+export type UserRole = "brands" | "serviceProviders" | "homeowner";
 
 interface RoleSelectionCardProps {
   onSelectRole: (role: UserRole) => void;
@@ -24,22 +24,22 @@ export function RoleSelectionCard({ onSelectRole, onBack }: RoleSelectionCardPro
 
   const roles = [
     {
-      id: "company" as UserRole,
-      title: "Company",
-      description: "Manage teams, projects, and multiple business operations.",
-      icon: Building2,
-    },
-    {
-      id: "contractor" as UserRole,
-      title: "Contractor",
-      description: "Find jobs, submit bids, and provide expert services.",
-      icon: HardHat,
-    },
-    {
       id: "homeowner" as UserRole,
       title: "Homeowner",
       description: "Post home improvement projects and hire top professionals.",
       icon: SquareUserRound,
+    },
+    {
+      id: "serviceProviders" as UserRole,
+      title: "Service Providers",
+      description: "Find jobs, submit bids, and provide expert services.",
+      icon: HardHat,
+    },
+    {
+      id: "brands" as UserRole,
+      title: "Brands",
+      description: "Manage teams, projects, and multiple business operations.",
+      icon: Building2,
     },
   ];
 
@@ -79,14 +79,14 @@ export function RoleSelectionCard({ onSelectRole, onBack }: RoleSelectionCardPro
                   type="button"
                   onClick={() => setSelectedRole(role.id)}
                   className={`relative w-full flex items-start gap-4 p-4 rounded-xl border text-left transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isSelected
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-primary/50 hover:bg-muted/50"
                     }`}
                 >
                   <div
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted text-muted-foreground border-border"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted text-muted-foreground border-border"
                       }`}
                   >
                     <Icon className="h-5 w-5" />
