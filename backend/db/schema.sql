@@ -5,7 +5,6 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- #region ENUMS, DOMAINS & LOOKUPS
 -- ==========================================
 
-
 CREATE TYPE user_type AS ENUM ('homeowner', 'contractor', 'company');
 CREATE TYPE contractor_type AS ENUM ('individual', 'organization');
 CREATE TYPE project_status AS ENUM ('pending', 'in_progress', 'completed', 'delayed', 'cancelled');
@@ -20,12 +19,27 @@ CREATE TYPE doc_type AS ENUM ('verification', 'warranty', 'receipt', 'legal', 'a
 -- ==========================================
 -- #region CORE USER MANAGEMENT
 -- ==========================================
+CREATE TABLE countries (
+    code CHAR(2) PRIMARY KEY,              -- ISO 3166-1 alpha-2 (e.g., 'US', 'JP', 'GB')
+    code_alpha3 CHAR(3) UNIQUE NOT NULL,   -- ISO 3166-1 alpha-3 (e.g., 'USA', 'JPN', 'GBR')
+    name VARCHAR(100) NOT NULL,            -- e.g., 'United States', 'Japan'
+    phone_code VARCHAR(10),                -- e.g., '+1', '+81'
+    
+    -- Currency details
+    currency_code CHAR(3) NOT NULL,        -- ISO 4217 code (e.g., 'USD', 'JPY', 'EUR')
+    currency_name VARCHAR(50) NOT NULL,    -- e.g., 'US Dollar', 'Japanese Yen'
+    currency_symbol VARCHAR(10) NOT NULL   -- e.g., '$', '¥', '€'
+);
+
+-- Index for searching/filtering by currency code (e.g., during payments or multi-currency pricing)
+CREATE INDEX idx_countries_currency ON countries (currency_code);
 
 CREATE TABLE users (
-    user_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- user_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    user_id uuid PRIMARY KEY,
     user_name VARCHAR(100) NOT NULL,
     user_email VARCHAR(255) NOT NULL UNIQUE,
-    user_country VARCHAR(100) NOT NULL,
+    user_country VARCHAR(100) NOT NULL REFERENCES countries(code),
     user_addr JSONB NOT NULL,
     user_type user_type NOT NULL,
     is_deleted BOOLEAN DEFAULT FALSE, -- soft delete flag to retain some info of the user (we'll delete data in the dependent tables accordingly but not from this.)
@@ -42,7 +56,8 @@ CREATE TABLE company (
 );
 
 CREATE TABLE company_products (
-    product_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- product_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    product_id uuid PRIMARY KEY,
     company_id uuid REFERENCES company(company_id) ON DELETE CASCADE,
     item_name VARCHAR NOT NULL,
     item_price DECIMAL(10,2) NOT NULL,
@@ -55,7 +70,8 @@ CREATE TABLE company_products (
 );
 
 CREATE TABLE docs (
-    doc_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- doc_id uuid PRIMARY KEY DEFAULT uuidv7(), 
+    doc_id uuid PRIMARY KEY ,
     user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     doc_name VARCHAR(150) NOT NULL,
     doc_type doc_type NOT NULL,
@@ -64,7 +80,8 @@ CREATE TABLE docs (
 );
 
 CREATE TABLE orders (
-    order_id uuid PRIMARY KEY DEFAULT uuidv7(), 
+    -- order_id uuid PRIMARY KEY DEFAULT uuidv7(), 
+    order_id uuid PRIMARY KEY , 
     user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     order_details JSONB NOT NULL,
     order_status order_status NOT NULL DEFAULT 'ordered',
@@ -78,7 +95,8 @@ CREATE TABLE orders (
 -- ==========================================
 
 CREATE TABLE categories (
-    category_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- category_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    category_id uuid PRIMARY KEY ,
     name VARCHAR(250) NOT NULL UNIQUE,
     category_description TEXT NOT NULL,
     meta_data JSONB
@@ -107,7 +125,8 @@ CREATE TABLE service_providers_categories (
 -- ==========================================
 
 CREATE TABLE subscriptions (
-    subscription_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- subscription_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    subscription_id uuid PRIMARY KEY ,
     subscription_name VARCHAR(100) NOT NULL UNIQUE,
     subscription_amount BIGINT NOT NULL,
     subscription_period INTERVAL NOT NULL,
@@ -131,7 +150,8 @@ CREATE TABLE user_subscriptions (
 -- ==========================================
 
 CREATE TABLE projects (
-    project_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- project_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    project_id uuid PRIMARY KEY ,
     assignee_user_id uuid NOT NULL REFERENCES users(user_id),
     assigned_to_user_id uuid NOT NULL REFERENCES users(user_id),
     quote_price BIGINT NOT NULL, 
@@ -155,7 +175,8 @@ CREATE TABLE projects (
 );
 
 CREATE TABLE project_tasks (
-    task_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- task_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    task_id uuid PRIMARY KEY ,
     project_id uuid REFERENCES projects(project_id) ON DELETE CASCADE,
     task_description TEXT NOT NULL,
     is_completed BOOLEAN DEFAULT FALSE,
@@ -173,7 +194,8 @@ CREATE TABLE project_payments (
 );
 
 CREATE TABLE ratings (
-    rating_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- rating_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    rating_id uuid PRIMARY KEY ,
     rated_by uuid NOT NULL REFERENCES users(user_id),
     rated_for uuid NOT NULL REFERENCES users(user_id),
     rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
@@ -190,7 +212,8 @@ CREATE TABLE ratings (
 -- ==========================================
 
 CREATE TABLE chat_rooms (
-    room_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- room_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    room_id uuid PRIMARY KEY ,
     project_id uuid NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -203,7 +226,8 @@ CREATE TABLE chat_participants (
 );
 
 CREATE TABLE messages (
-    msg_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- msg_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    msg_id uuid PRIMARY KEY ,
     room_id uuid NOT NULL REFERENCES chat_rooms(room_id) ON DELETE CASCADE,
     sender_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     message_type VARCHAR NOT NULL DEFAULT 'conversation',
@@ -220,7 +244,8 @@ CREATE TABLE messages (
 
 -- Past projects completed by service providers (for semantic profiling) [we'll have to build a doc-parser in order to parse the documents given or we can take form inputs (much easier!!!)]
 CREATE TABLE provider_past_projects (
-    past_project_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- past_project_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    past_project_id uuid PRIMARY KEY ,
     provider_id uuid NOT NULL REFERENCES service_providers(user_id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
@@ -274,7 +299,8 @@ CREATE TYPE agent_role AS ENUM ('system', 'user', 'assistant', 'tool');
 
 -- 1. Tracks unique interaction sessions with the AI agent
 CREATE TABLE ai_conversations (
-    conversation_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- conversation_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    conversation_id uuid PRIMARY KEY ,
     user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     project_id uuid REFERENCES projects(project_id) ON DELETE SET NULL, -- Nullable if it's a general help/onboarding chat (in the starting it'll be null as we only allow user to )
     title VARCHAR(255),
@@ -284,7 +310,8 @@ CREATE TABLE ai_conversations (
 
 -- 2. Stores sequential LLM-style message exchanges for conversation context
 CREATE TABLE ai_conversation_messages (
-    message_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- message_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    message_id uuid PRIMARY KEY ,
     conversation_id uuid NOT NULL REFERENCES ai_conversations(conversation_id) ON DELETE CASCADE,
     role agent_role NOT NULL, -- system, user, assistant, or tool
     content TEXT NOT NULL, -- Raw message content
@@ -298,7 +325,8 @@ CREATE TABLE ai_conversation_messages (
 -- 3. Tracks specific actions/tools the AI Agent called during the chat 
 -- (e.g., "AI searched for plumbers in Tokyo", "AI ran vector search on product catalog")
 CREATE TABLE ai_agent_actions (
-    action_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- action_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    action_id uuid PRIMARY KEY ,
     message_id uuid NOT NULL REFERENCES ai_conversation_messages(message_id) ON DELETE CASCADE,
     tool_name VARCHAR(100) NOT NULL, -- e.g., 'vector_search_contractors', 'fetch_user_profile'
     tool_input JSONB, -- The parameters the AI passed to your backend
@@ -311,3 +339,117 @@ CREATE INDEX idx_ai_messages_ordered
 ON ai_conversation_messages (conversation_id, created_at ASC);
 
 -- #endregion
+
+
+-- ==========================================
+-- #region ADMIN SYSTEM & MANAGEMENT
+-- ==========================================
+
+CREATE TYPE admin_role AS ENUM ('super_admin', 'support_admin', 'moderator');
+
+CREATE TABLE admins (
+    -- admin_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    admin_id uuid PRIMARY KEY ,
+    admin_email VARCHAR(255) NOT NULL UNIQUE,
+    full_name VARCHAR(100) NOT NULL,
+    role admin_role NOT NULL DEFAULT 'moderator',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- System Audit Log (Track admin operations like banning users, editing projects)
+CREATE TABLE admin_audit_logs (
+    -- log_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    log_id uuid PRIMARY KEY,
+    admin_id uuid NOT NULL REFERENCES admins(admin_id) ON DELETE CASCADE,
+    action_type VARCHAR(100) NOT NULL, -- e.g., 'soft_delete_user', 'verify_contractor'
+    target_table VARCHAR(100) NOT NULL,
+    target_id uuid NOT NULL,
+    details JSONB,
+    performed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- #endregion
+-- ==========================================
+-- #region PUBLIC ANNOUNCEMENTS & BANNERS
+-- ==========================================
+
+CREATE TABLE public_announcements (
+    -- announcement_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    announcement_id uuid PRIMARY KEY ,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    cta_link TEXT, -- Optional link for banner button click
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    display_start TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    display_end TIMESTAMPTZ, -- NULL means display indefinitely until deactivated
+    created_by uuid NOT NULL REFERENCES admins(admin_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    
+    CONSTRAINT chk_display_time CHECK (
+        display_end IS NULL OR display_end > display_start
+    )
+);
+
+-- Fast partial index for querying currently active banners on website navbar load
+CREATE INDEX idx_active_public_announcements 
+ON public_announcements (display_start, display_end) 
+WHERE is_active = TRUE;
+
+-- #endregion
+
+-- ==========================================
+-- #region SITE ANALYTICS & TELEMETRY
+-- ==========================================
+CREATE TYPE event_category AS ENUM ('page_view', 'ui_click', 'api_call', 'feature_usage');
+CREATE TYPE event_device AS ENUM ('web', 'mobile', 'api');
+
+CREATE TABLE telemetry_events (
+    -- event_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    event_id uuid PRIMARY KEY ,
+    
+    -- Identity & Context
+    user_id uuid REFERENCES users(user_id) ON DELETE SET NULL,
+    session_id uuid, -- Groups consecutive page views and actions within a single visit
+    
+    -- Event Classification
+    category event_category NOT NULL,
+    device event_device NOT NULL DEFAULT 'web', -- Identifies client environment (web app, mobile app, external API call)
+    event_key VARCHAR(150) NOT NULL,            -- Standardized format: 'page:/projects', 'click:submit_quote', 'api:POST/chat'
+    
+    -- Performance Metrics (Crucial for identifying bottlenecks and scaling individual routes)
+    response_time_ms INT, -- Latency in ms (API execution or Page render time)
+    status_code SMALLINT, -- HTTP status codes (200, 429, 500, etc.)
+    
+    -- Dynamic Details (Context-specific properties)
+    -- Web/Mobile Click: {"element_id": "btn_hire", "component": "ContractorCard"}
+    -- API Call: {"endpoint": "/v1/chat", "tokens_used": 350}
+    metadata JSONB DEFAULT '{}'::jsonb,
+    
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Compound Index for fast aggregation & dashboards filtered by platform and key
+CREATE INDEX idx_telemetry_device_key_time 
+ON telemetry_events (device, event_key, created_at DESC);
+
+-- Index for analyzing error spikes per category/device
+CREATE INDEX idx_telemetry_category_device 
+ON telemetry_events (category, device, created_at DESC);
+
+-- #endregion
+CREATE TABLE metric_hourly_rollups (
+    rollup_time TIMESTAMPTZ NOT NULL,
+    event_key VARCHAR(150) NOT NULL,
+    category event_category NOT NULL,
+    device event_device NOT NULL, -- on hourly basis which device is consuming our resources.
+    
+    total_hits BIGINT NOT NULL DEFAULT 0,
+    error_count BIGINT NOT NULL DEFAULT 0,
+    avg_response_time_ms INT DEFAULT 0,
+    p95_response_time_ms INT DEFAULT 0,
+    
+    PRIMARY KEY (rollup_time, event_key, device)
+);
