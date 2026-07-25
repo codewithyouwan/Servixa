@@ -101,6 +101,59 @@ export function ZipSelector({
     commit(draft);
   }
 
+  /**
+   * Reverse-geocode coordinates to a postal code, trying two free
+   * providers so a single outage or gap in coverage doesn't fail the
+   * lookup. Returns { postcode, countryCode } from the first provider
+   * that answers, or null if both fail.
+   */
+  async function reverseGeocode(
+    latitude: number,
+    longitude: number
+  ): Promise<{ postcode: string; countryCode: string } | null> {
+    // Provider 1: BigDataCloud (no key, CORS-enabled)
+    try {
+      const response = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+      );
+      if (response.ok) {
+        const data = (await response.json()) as {
+          postcode?: string;
+          countryCode?: string;
+        };
+        if (data.postcode) {
+          return {
+            postcode: data.postcode,
+            countryCode: data.countryCode ?? "",
+          };
+        }
+      }
+    } catch {
+      // fall through to provider 2
+    }
+    // Provider 2: OpenStreetMap Nominatim
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
+        { headers: { Accept: "application/json" } }
+      );
+      if (response.ok) {
+        const data = (await response.json()) as {
+          address?: { postcode?: string; country_code?: string };
+        };
+        if (data.address?.postcode) {
+          return {
+            postcode: data.address.postcode,
+            countryCode: (data.address.country_code ?? "").toUpperCase(),
+          };
+        }
+      }
+    } catch {
+      // both providers failed
+    }
+    return null;
+  }
+
   async function useCurrentLocation() {
     if (!("geolocation" in navigator)) {
       setError("Location is not available in this browser.");
@@ -112,15 +165,26 @@ export function ZipSelector({
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const response = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-          );
-          const data = (await response.json()) as { postcode?: string };
-          const zip = (data.postcode ?? "").slice(0, 5);
+          const result = await reverseGeocode(latitude, longitude);
+          if (!result) {
+            setError(
+              "Couldn't reach the location service (a privacy blocker may be blocking it) — please enter your ZIP manually."
+            );
+            return;
+          }
+          const zip = result.postcode.replace(/\D/g, "").slice(0, 5);
+          if (result.countryCode && result.countryCode !== "US") {
+            setError(
+              `You appear to be outside the US (postal code ${result.postcode}). BestBuild currently supports US ZIP codes only — enter a US ZIP manually.`
+            );
+            return;
+          }
           if (ZIP_PATTERN.test(zip)) {
             commit(zip);
           } else {
-            setError("Couldn't detect your ZIP — please enter it manually.");
+            setError(
+              "Your location didn't map to a ZIP code — please enter it manually."
+            );
           }
         } catch {
           setError("Couldn't detect your ZIP — please enter it manually.");
@@ -128,9 +192,13 @@ export function ZipSelector({
           setLocating(false);
         }
       },
-      () => {
+      (geoError) => {
         setLocating(false);
-        setError("Location permission denied — enter your ZIP manually.");
+        setError(
+          geoError.code === geoError.PERMISSION_DENIED
+            ? "Location permission denied — enter your ZIP manually."
+            : "Couldn't get your location (timeout or unavailable) — enter your ZIP manually."
+        );
       },
       { timeout: 8000 }
     );
