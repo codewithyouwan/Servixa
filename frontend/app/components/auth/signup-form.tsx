@@ -12,7 +12,10 @@ import {
   AccountTypeSelector,
   type AccountType,
 } from "@/app/components/auth/account-type-selector";
-import { ZIP_PATTERN, saveZip } from "@/app/components/search/zip-selector";
+import {
+  isValidPostalCode,
+  saveZip,
+} from "@/app/components/search/zip-selector";
 
 /**
  * Sign-up form card. Visual + client-side state only — backend auth wiring
@@ -35,8 +38,8 @@ export function SignupForm() {
       setError("Passwords do not match.");
       return;
     }
-    if (!ZIP_PATTERN.test(zipCode)) {
-      setError("Please enter a valid 5-digit ZIP code.");
+    if (!isValidPostalCode(zipCode)) {
+      setError("Please enter a valid ZIP / postal code.");
       return;
     }
     if (!acceptedTerms) {
@@ -91,19 +94,18 @@ export function SignupForm() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="signup-zip">ZIP code</Label>
+          <Label htmlFor="signup-zip">ZIP / postal code</Label>
           <Input
             id="signup-zip"
             name="zipCode"
             type="text"
-            inputMode="numeric"
             autoComplete="postal-code"
-            maxLength={5}
+            maxLength={10}
             required
-            placeholder="e.g. 75201"
+            placeholder="e.g. 75201 or 123-4567"
             value={zipCode}
             onChange={(event) =>
-              setZipCode(event.target.value.replace(/\D/g, ""))
+              setZipCode(event.target.value.replace(/[^A-Za-z0-9\s-]/g, ""))
             }
             className="h-11 tabular-nums"
           />

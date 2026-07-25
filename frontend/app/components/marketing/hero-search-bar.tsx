@@ -93,8 +93,8 @@ export function HeroSearchBar({ className }: HeroSearchBarProps) {
       </form>
       {zipError && (
         <p role="alert" className="mt-1.5 text-xs font-medium text-destructive">
-          Please set your ZIP code (or use your current location) so we can
-          find pros near you.
+          Please set your ZIP / postal code (or use your current location)
+          so we can find pros near you.
         </p>
       )}
     </div>

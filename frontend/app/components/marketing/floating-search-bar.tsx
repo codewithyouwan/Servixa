@@ -60,7 +60,8 @@ export function FloatingSearchBar() {
             role="alert"
             className="mb-1.5 rounded-lg bg-card/90 px-3 py-1.5 text-center text-xs font-medium text-destructive shadow-sm backdrop-blur-sm"
           >
-            Set your ZIP code (or use your current location) to continue.
+            Set your ZIP / postal code (or use your current location) to
+            continue.
           </p>
         )}
         <form

@@ -12,21 +12,43 @@ import { LoaderCircle, LocateFixed, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * The default ZIP is shared across the app (hero search, floating search)
- * and seeded from the ZIP the user enters in their profile at sign-up.
+ * The default postal code is shared across the app (hero search, floating
+ * search) and seeded from the code the user enters in their profile at
+ * sign-up.
  */
 export const ZIP_STORAGE_KEY = "bestbuild.zip";
 
-export const ZIP_PATTERN = /^\d{5}$/;
+/**
+ * Global postal-code validation: BestBuild is a global platform, so this
+ * accepts any common national format — US "75201", Japan "123-4567",
+ * UK "SW1A 1AA", Canada "K1A 0B1", India "482002", and similar.
+ * Rules: 3–10 characters, alphanumeric with optional single spaces or
+ * hyphens between them, and at least one digit.
+ */
+export const ZIP_PATTERN = /^(?=.*\d)[A-Za-z0-9]+(?:[ -][A-Za-z0-9]+)*$/;
+
+export function isValidPostalCode(code: string): boolean {
+  const trimmed = code.trim();
+  return (
+    trimmed.length >= 3 && trimmed.length <= 10 && ZIP_PATTERN.test(trimmed)
+  );
+}
+
+/** Normalize user input: uppercase, collapse whitespace. */
+export function normalizePostalCode(code: string): string {
+  return code.trim().toUpperCase().replace(/\s+/g, " ");
+}
 
 export function getSavedZip(): string {
   if (typeof window === "undefined") return "";
   const saved = localStorage.getItem(ZIP_STORAGE_KEY) ?? "";
-  return ZIP_PATTERN.test(saved) ? saved : "";
+  return isValidPostalCode(saved) ? saved : "";
 }
 
 export function saveZip(zip: string) {
-  if (ZIP_PATTERN.test(zip)) localStorage.setItem(ZIP_STORAGE_KEY, zip);
+  if (isValidPostalCode(zip)) {
+    localStorage.setItem(ZIP_STORAGE_KEY, normalizePostalCode(zip));
+  }
 }
 
 interface ZipSelectorProps {
@@ -86,13 +108,13 @@ export function ZipSelector({
   }
 
   function commit(zip: string) {
-    const trimmed = zip.trim();
-    if (!ZIP_PATTERN.test(trimmed)) {
-      setError("Enter a valid 5-digit ZIP code.");
+    const normalized = normalizePostalCode(zip);
+    if (!isValidPostalCode(normalized)) {
+      setError("Enter a valid ZIP / postal code (e.g. 75201 or 123-4567).");
       return;
     }
-    saveZip(trimmed);
-    onChange(trimmed);
+    saveZip(normalized);
+    onChange(normalized);
     setOpen(false);
   }
 
@@ -168,26 +190,22 @@ export function ZipSelector({
           const result = await reverseGeocode(latitude, longitude);
           if (!result) {
             setError(
-              "Couldn't reach the location service (a privacy blocker may be blocking it) — please enter your ZIP manually."
+              "Couldn't reach the location service (a privacy blocker may be blocking it) — please enter your postal code manually."
             );
             return;
           }
-          const zip = result.postcode.replace(/\D/g, "").slice(0, 5);
-          if (result.countryCode && result.countryCode !== "US") {
-            setError(
-              `You appear to be outside the US (postal code ${result.postcode}). BestBuild currently supports US ZIP codes only — enter a US ZIP manually.`
-            );
-            return;
-          }
-          if (ZIP_PATTERN.test(zip)) {
-            commit(zip);
+          const detected = normalizePostalCode(result.postcode);
+          if (isValidPostalCode(detected)) {
+            commit(detected);
           } else {
             setError(
-              "Your location didn't map to a ZIP code — please enter it manually."
+              "Your location didn't map to a postal code — please enter it manually."
             );
           }
         } catch {
-          setError("Couldn't detect your ZIP — please enter it manually.");
+          setError(
+            "Couldn't detect your postal code — please enter it manually."
+          );
         } finally {
           setLocating(false);
         }
@@ -196,8 +214,8 @@ export function ZipSelector({
         setLocating(false);
         setError(
           geoError.code === geoError.PERMISSION_DENIED
-            ? "Location permission denied — enter your ZIP manually."
-            : "Couldn't get your location (timeout or unavailable) — enter your ZIP manually."
+            ? "Location permission denied — enter your postal code manually."
+            : "Couldn't get your location (timeout or unavailable) — enter your postal code manually."
         );
       },
       { timeout: 8000 }
@@ -211,14 +229,18 @@ export function ZipSelector({
         onClick={toggleOpen}
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-label={value ? `Location: ZIP ${value}` : "Set your ZIP code"}
+        aria-label={
+          value
+            ? `Location: postal code ${value}`
+            : "Set your ZIP / postal code"
+        }
         className={cn(
           "flex h-10 shrink-0 items-center gap-1.5 rounded-lg border-r border-border/60 px-2.5 text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
           value ? "text-foreground" : "text-muted-foreground"
         )}
       >
         <MapPin aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" />
-        <span className="max-w-16 truncate tabular-nums">
+        <span className="max-w-20 truncate tabular-nums">
           {value || "ZIP"}
         </span>
       </button>
@@ -238,20 +260,21 @@ export function ZipSelector({
             htmlFor={`${idPrefix}-zip-input`}
             className="text-xs font-semibold text-foreground"
           >
-            ZIP code
+            ZIP / postal code
           </label>
           <div className="mt-1.5 flex gap-2">
             <input
               ref={inputRef}
               id={`${idPrefix}-zip-input`}
               type="text"
-              inputMode="numeric"
               autoComplete="postal-code"
-              maxLength={5}
-              placeholder="e.g. 75201"
+              maxLength={10}
+              placeholder="e.g. 75201 or 123-4567"
               value={draft}
               onChange={(event) =>
-                setDraft(event.target.value.replace(/\D/g, ""))
+                setDraft(
+                  event.target.value.replace(/[^A-Za-z0-9\s-]/g, "")
+                )
               }
               onKeyDown={(event) => {
                 if (event.key === "Enter") handleSubmitDraft(event);
