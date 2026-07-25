@@ -55,7 +55,7 @@ export function HowItWorks() {
             const Icon = step.icon;
             return (
               <Reveal key={step.step} delay={index * 90}>
-                <div className="group h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60">
+                <div className="group h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60 dark:shadow-black/40">
                   <div className="flex items-center justify-between">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                       <Icon aria-hidden="true" className="h-5 w-5" />

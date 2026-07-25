@@ -29,7 +29,7 @@ export function DashboardPreview() {
       ctaHref="/pages/auth/signup"
       visualSide="left"
     >
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60 dark:shadow-black/40">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">

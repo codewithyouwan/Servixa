@@ -70,7 +70,7 @@ export function WhyChooseUs() {
             const Icon = reason.icon;
             return (
               <Reveal key={reason.title} delay={(index % 3) * 90}>
-                <div className="h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60">
+                <div className="h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60 dark:shadow-black/40">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
                     <Icon aria-hidden="true" className="h-5 w-5" />
                   </span>

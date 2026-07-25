@@ -12,6 +12,7 @@ import {
   AccountTypeSelector,
   type AccountType,
 } from "@/app/components/auth/account-type-selector";
+import { ZIP_PATTERN, saveZip } from "@/app/components/search/zip-selector";
 
 /**
  * Sign-up form card. Visual + client-side state only — backend auth wiring
@@ -22,6 +23,7 @@ export function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [accountType, setAccountType] = useState<AccountType>("homeowner");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +35,17 @@ export function SignupForm() {
       setError("Passwords do not match.");
       return;
     }
+    if (!ZIP_PATTERN.test(zipCode)) {
+      setError("Please enter a valid 5-digit ZIP code.");
+      return;
+    }
     if (!acceptedTerms) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
     setError(null);
+    // Save as the profile default — search bars prefill from this.
+    saveZip(zipCode);
     // TODO: wire to auth API. For now, go to the landing page.
     router.push("/pages/main");
   }
@@ -48,7 +56,7 @@ export function SignupForm() {
         Create your account
       </h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Join BestBuild as a homeowner or service provider.
+        Join BestBuild as a homeowner, service provider, or brand.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
@@ -80,6 +88,29 @@ export function SignupForm() {
             onChange={(event) => setEmail(event.target.value)}
             className="h-11"
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="signup-zip">ZIP code</Label>
+          <Input
+            id="signup-zip"
+            name="zipCode"
+            type="text"
+            inputMode="numeric"
+            autoComplete="postal-code"
+            maxLength={5}
+            required
+            placeholder="e.g. 75201"
+            value={zipCode}
+            onChange={(event) =>
+              setZipCode(event.target.value.replace(/\D/g, ""))
+            }
+            className="h-11 tabular-nums"
+          />
+          <p className="text-xs text-muted-foreground">
+            Used to match you with pros near you — becomes your default
+            search location.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

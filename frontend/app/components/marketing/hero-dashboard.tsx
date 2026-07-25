@@ -29,7 +29,7 @@ export function HeroDashboard({ className }: HeroDashboardProps) {
       <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-br from-secondary via-background to-accent blur-0" />
 
       {/* Main dashboard card */}
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60 dark:shadow-black/40">
         {/* AI Project Assistant */}
         <div className="flex items-start gap-3 rounded-xl bg-muted/60 p-3.5">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -148,7 +148,7 @@ export function HeroDashboard({ className }: HeroDashboardProps) {
       </div>
 
       {/* Floating smart recommendation chip */}
-      <div className="animate-float-soft absolute -top-5 -right-3 flex items-center gap-2 rounded-xl border border-border/70 bg-card px-3.5 py-2.5 shadow-lg shadow-blue-slate-200/60 sm:-right-6">
+      <div className="animate-float-soft absolute -top-5 -right-3 flex items-center gap-2 rounded-xl border border-border/70 bg-card px-3.5 py-2.5 shadow-lg shadow-blue-slate-200/60 dark:shadow-black/40 sm:-right-6">
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-accent text-accent-foreground">
           <Sparkles className="h-3.5 w-3.5" />
         </span>

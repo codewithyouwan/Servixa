@@ -68,7 +68,7 @@ export function FeaturedProviders() {
         <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {PROVIDERS.map((provider, index) => (
             <Reveal key={provider.name} delay={(index % 4) * 90}>
-              <div className="group h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60">
+              <div className="group h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60 dark:shadow-black/40">
                 <div className="flex items-start justify-between">
                   <span
                     aria-hidden="true"

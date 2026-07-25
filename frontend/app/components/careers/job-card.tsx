@@ -23,7 +23,7 @@ export interface Position {
  */
 export function JobCard({ position }: { position: Position }) {
   return (
-    <article className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-blue-slate-200/60 sm:p-8">
+    <article className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-blue-slate-200/60 dark:shadow-black/40 sm:p-8">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

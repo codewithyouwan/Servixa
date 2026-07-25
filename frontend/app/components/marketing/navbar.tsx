@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { ThemeToggle } from "@/app/components/theme/theme-toggle";
 
 interface NavLink {
   label: string;
@@ -66,6 +67,7 @@ export function Navbar() {
 
         {/* Desktop auth actions */}
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           <Link
             href="/pages/auth/login"
             className={cn(buttonVariants({ variant: "ghost" }), "h-9 px-4")}
@@ -83,21 +85,24 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Mobile menu toggle */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen((open) => !open)}
-          aria-expanded={mobileOpen}
-          aria-controls="mobile-menu"
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-foreground transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden"
-        >
-          {mobileOpen ? (
-            <X aria-hidden="true" className="h-5 w-5" />
-          ) : (
-            <Menu aria-hidden="true" className="h-5 w-5" />
-          )}
-        </button>
+        {/* Mobile actions */}
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-foreground transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {mobileOpen ? (
+              <X aria-hidden="true" className="h-5 w-5" />
+            ) : (
+              <Menu aria-hidden="true" className="h-5 w-5" />
+            )}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}
