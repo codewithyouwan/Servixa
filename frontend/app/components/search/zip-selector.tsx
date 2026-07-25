@@ -160,7 +160,9 @@ export function ZipSelector({
           role="dialog"
           aria-label="Choose your location"
           className={cn(
-            "absolute left-0 z-50 w-64 rounded-xl border border-border/70 bg-popover p-3 shadow-lg dark:shadow-black/50",
+            // bg-card is fully opaque in both themes — the popover must not
+            // let the page behind it show through.
+            "absolute left-0 z-50 w-64 rounded-xl border border-border bg-card p-3 opacity-100 shadow-xl backdrop-blur-none dark:shadow-black/50",
             popoverSide === "bottom" ? "top-full mt-2" : "bottom-full mb-2"
           )}
         >
