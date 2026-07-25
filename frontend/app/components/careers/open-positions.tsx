@@ -98,7 +98,7 @@ export function OpenPositions() {
             Don&apos;t see your role? We still want to meet exceptional
             builders —{" "}
             <a
-              href="mailto:careers@servixa.com"
+              href="mailto:careers@bestbuild.com"
               className="rounded-sm font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               send us your resume

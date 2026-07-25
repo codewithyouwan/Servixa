@@ -61,7 +61,7 @@ export function FeaturedProviders() {
             eyebrow="Featured Service Providers"
             title="Meet the pros homeowners love"
             accent="homeowners love"
-            description="A few of the thousands of verified professionals winning projects on Servixa."
+            description="A few of the thousands of verified professionals winning projects on BestBuild."
           />
         </Reveal>
 

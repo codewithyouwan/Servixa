@@ -10,7 +10,7 @@ Why a monorepo instead of two separate repos:
 - It stays easy to split later: each app already lives in its own workspace folder, so extracting `apps/api` into its own repo when the team grows is a `git filter-repo`, not a rewrite.
 
 ```
-servixa/
+bestbuild/
 ├── apps/
 │   ├── web/                 # Next.js frontend
 │   └── api/                 # NestJS backend

@@ -4,9 +4,9 @@ import { AuthLayout } from "@/app/components/auth/auth-layout";
 import { SignupForm } from "@/app/components/auth/signup-form";
 
 export const metadata: Metadata = {
-  title: "Sign Up — Servixa",
+  title: "Sign Up — BestBuild",
   description:
-    "Create a free Servixa account — post home projects as a homeowner or grow your business as a service provider.",
+    "Create a free BestBuild account — post home projects as a homeowner or grow your business as a service provider.",
 };
 
 export default function SignupPage() {

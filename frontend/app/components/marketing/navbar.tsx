@@ -37,16 +37,16 @@ export function Navbar() {
         <Link
           href="/pages/main"
           className="flex items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          aria-label="Servixa home"
+          aria-label="BestBuild home"
         >
           <span
             aria-hidden="true"
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
           >
-            S
+            B
           </span>
           <span className="text-lg font-semibold tracking-tight text-foreground">
-            Servixa
+            BestBuild
           </span>
         </Link>
 

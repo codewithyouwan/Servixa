@@ -8,7 +8,7 @@ interface CareersIllustrationProps {
 
 /**
  * Original hero illustration for the Careers page: a layered "day at
- * Servixa" composition — code review, AI pair-programming suggestion,
+ * BestBuild" composition — code review, AI pair-programming suggestion,
  * team standup, and a floating deploy chip. Pure DOM + theme tokens.
  */
 export function CareersIllustration({ className }: CareersIllustrationProps) {

@@ -12,9 +12,9 @@ import { CareersFaq } from "@/app/components/careers/careers-faq";
 import { CareersCta } from "@/app/components/careers/careers-cta";
 
 export const metadata: Metadata = {
-  title: "Careers — Servixa",
+  title: "Careers — BestBuild",
   description:
-    "Join Servixa and help build the AI-powered construction marketplace. Remote-friendly roles in engineering and DevOps — internships and full-time.",
+    "Join BestBuild and help build the AI-powered construction marketplace. Remote-friendly roles in engineering and DevOps — internships and full-time.",
 };
 
 export default function CareersPage() {

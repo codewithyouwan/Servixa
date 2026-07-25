@@ -54,11 +54,11 @@ const REASONS = [
  */
 export function WhyChooseUs() {
   return (
-    <section aria-label="Why choose Servixa" className="scroll-mt-24 bg-muted/40">
+    <section aria-label="Why choose BestBuild" className="scroll-mt-24 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Why Servixa"
+            eyebrow="Why BestBuild"
             title="Built different, on purpose"
             accent="on purpose"
             description="Legacy platforms sell your contact info to a list of contractors. We match you with the right professionals — intelligently."

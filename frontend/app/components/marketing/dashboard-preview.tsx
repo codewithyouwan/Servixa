@@ -18,7 +18,7 @@ export function DashboardPreview() {
       eyebrow="Project Dashboard"
       title="Watch your project come to life"
       accent="come to life"
-      description="After you hire, Servixa keeps working. Milestones, daily photo updates, shared files, and messages live in one dashboard — so you always know exactly where your project stands."
+      description="After you hire, BestBuild keeps working. Milestones, daily photo updates, shared files, and messages live in one dashboard — so you always know exactly where your project stands."
       bullets={[
         "Milestone tracking with clear completion states",
         "Daily progress photos from your service provider",

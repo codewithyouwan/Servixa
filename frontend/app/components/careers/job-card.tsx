@@ -61,7 +61,7 @@ export function JobCard({ position }: { position: Position }) {
         </div>
 
         <Link
-          href="mailto:careers@servixa.com"
+          href="mailto:careers@bestbuild.com"
           className={cn(
             buttonVariants({ variant: "default", size: "lg" }),
             "group h-11 shrink-0 rounded-full px-6"

@@ -42,15 +42,15 @@ export function AuthLayout({
         <Link
           href="/pages/main"
           className="relative flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
-          aria-label="Servixa home"
+          aria-label="BestBuild home"
         >
           <span
             aria-hidden="true"
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted-teal-400 text-sm font-bold text-space-indigo-950"
           >
-            S
+            B
           </span>
-          <span className="text-lg font-semibold tracking-tight">Servixa</span>
+          <span className="text-lg font-semibold tracking-tight">BestBuild</span>
         </Link>
 
         <div className="relative max-w-md">
@@ -85,16 +85,16 @@ export function AuthLayout({
           <Link
             href="/pages/main"
             className="mb-8 flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:hidden"
-            aria-label="Servixa home"
+            aria-label="BestBuild home"
           >
             <span
               aria-hidden="true"
               className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
             >
-              S
+              B
             </span>
             <span className="text-lg font-semibold tracking-tight text-foreground">
-              Servixa
+              BestBuild
             </span>
           </Link>
           {children}

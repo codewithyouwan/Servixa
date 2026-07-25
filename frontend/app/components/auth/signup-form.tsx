@@ -48,7 +48,7 @@ export function SignupForm() {
         Create your account
       </h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Join Servixa as a homeowner or service provider.
+        Join BestBuild as a homeowner or service provider.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
