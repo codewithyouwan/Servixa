@@ -46,7 +46,6 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-<<<<<<< HEAD
       <body className="min-h-full flex flex-col">
         {/* Apply the saved theme before paint to avoid a light/dark flash */}
         <script
@@ -56,12 +55,6 @@ export default function RootLayout({
         />
         {children}
       </body>
-=======
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body className="min-h-full flex flex-col">{children}</body>
->>>>>>> dev/geature/hero_page
     </html>
   );
 }
