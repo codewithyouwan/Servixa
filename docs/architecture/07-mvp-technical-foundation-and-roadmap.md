@@ -29,7 +29,7 @@ Per CLAUDE.md's governing rule ("do not build future enterprise features," MVP-o
 ## 2. Monorepo Structure
 
 ```
-servixa/
+bestbuild/
 ├── apps/
 │   ├── web/              # Next.js — marketing site + authenticated app, one deployable
 │   └── api/               # NestJS — all backend business logic, one deployable

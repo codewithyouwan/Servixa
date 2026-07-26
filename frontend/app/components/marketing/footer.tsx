@@ -51,16 +51,16 @@ export function Footer() {
             <Link
               href="/pages/main"
               className="flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              aria-label="Servixa home"
+              aria-label="BestBuild home"
             >
               <span
                 aria-hidden="true"
                 className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
               >
-                S
+                B
               </span>
               <span className="text-lg font-semibold tracking-tight text-foreground">
-                Servixa
+                BestBuild
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
@@ -92,7 +92,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-8 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Servixa, Inc. All rights reserved.
+            © {new Date().getFullYear()} BestBuild, Inc. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             Built for homeowners &amp; service providers, everywhere in the US.

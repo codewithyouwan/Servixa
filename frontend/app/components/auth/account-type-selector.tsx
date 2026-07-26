@@ -1,10 +1,10 @@
 "use client";
 
-import { Home, Wrench } from "lucide-react";
+import { Home, Package, Wrench } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export type AccountType = "homeowner" | "service-provider";
+export type AccountType = "homeowner" | "service-provider" | "brand";
 
 interface AccountTypeSelectorProps {
   value: AccountType;
@@ -30,6 +30,12 @@ const OPTIONS: {
     description: "Get leads and grow your business",
     icon: Wrench,
   },
+  {
+    value: "brand",
+    label: "Brand",
+    description: "Showcase products and reach installers",
+    icon: Package,
+  },
 ];
 
 /**
@@ -46,7 +52,7 @@ export function AccountTypeSelector({
       <legend className="mb-2 text-sm font-medium text-foreground">
         Account type
       </legend>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {OPTIONS.map((option) => {
           const Icon = option.icon;
           const selected = value === option.value;
@@ -54,7 +60,7 @@ export function AccountTypeSelector({
             <label
               key={option.value}
               className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors",
+                "flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors sm:flex-col sm:gap-2.5",
                 "has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
                 selected
                   ? "border-primary bg-secondary/50"

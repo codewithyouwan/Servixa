@@ -49,7 +49,7 @@ export function QuoteComparisonPreview() {
       ctaHref="/pages/auth/signup"
       visualSide="right"
     >
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60 dark:shadow-black/40">
         <p className="text-xs font-semibold text-foreground">
           Kitchen Renovation — 3 quotes received
         </p>

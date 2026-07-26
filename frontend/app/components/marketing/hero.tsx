@@ -66,7 +66,11 @@ export function Hero() {
             </Link>
           </div>
 
-          <HeroSearchBar className="animate-fade-up animation-delay-300 mt-2 w-full max-w-xl" />
+          {/* relative z-20: the fade-up animation leaves a transform on each
+              sibling, giving every one its own stacking context — without an
+              explicit z-index, later siblings (TrustIndicators) would paint
+              on top of the ZIP popover that opens from this search bar. */}
+          <HeroSearchBar className="animate-fade-up animation-delay-300 relative z-20 mt-2 w-full max-w-xl" />
 
           <TrustIndicators className="animate-fade-up animation-delay-300 mt-1" />
         </div>

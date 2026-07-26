@@ -8,7 +8,7 @@ interface CareersIllustrationProps {
 
 /**
  * Original hero illustration for the Careers page: a layered "day at
- * Servixa" composition — code review, AI pair-programming suggestion,
+ * BestBuild" composition — code review, AI pair-programming suggestion,
  * team standup, and a floating deploy chip. Pure DOM + theme tokens.
  */
 export function CareersIllustration({ className }: CareersIllustrationProps) {
@@ -18,7 +18,7 @@ export function CareersIllustration({ className }: CareersIllustrationProps) {
       <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-br from-secondary via-background to-accent" />
 
       {/* Code review card */}
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60 dark:shadow-black/40">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
             <GitPullRequest className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function CareersIllustration({ className }: CareersIllustrationProps) {
       </div>
 
       {/* Standup card */}
-      <div className="absolute -bottom-6 -left-3 w-52 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-lg shadow-blue-slate-200/60 backdrop-blur-sm sm:-left-6">
+      <div className="absolute -bottom-6 -left-3 w-52 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-lg shadow-blue-slate-200/60 dark:shadow-black/40 backdrop-blur-sm sm:-left-6">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-accent-foreground">
             <Users className="h-3.5 w-3.5" />
@@ -99,7 +99,7 @@ export function CareersIllustration({ className }: CareersIllustrationProps) {
       </div>
 
       {/* Floating deploy chip */}
-      <div className="animate-float-soft absolute -top-5 -right-3 flex items-center gap-2 rounded-xl border border-border/70 bg-card px-3.5 py-2.5 shadow-lg shadow-blue-slate-200/60 sm:-right-6">
+      <div className="animate-float-soft absolute -top-5 -right-3 flex items-center gap-2 rounded-xl border border-border/70 bg-card px-3.5 py-2.5 shadow-lg shadow-blue-slate-200/60 dark:shadow-black/40 sm:-right-6">
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-accent text-accent-foreground">
           <Rocket className="h-3.5 w-3.5" />
         </span>

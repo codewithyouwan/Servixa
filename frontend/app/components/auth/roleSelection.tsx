@@ -62,7 +62,7 @@ export function RoleSelectionCard({ onSelectRole, onBack }: RoleSelectionCardPro
           What type of user are you?
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Choose the role that best describes your needs on Servixa.
+          Choose the role that best describes your needs on BestBuild.
         </CardDescription>
       </CardHeader>
 

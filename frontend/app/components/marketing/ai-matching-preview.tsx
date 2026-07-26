@@ -49,7 +49,7 @@ export function AiMatchingPreview() {
       ctaHref="/pages/auth/signup"
       visualSide="left"
     >
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60 dark:shadow-black/40">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Sparkles aria-hidden="true" className="h-4 w-4" />

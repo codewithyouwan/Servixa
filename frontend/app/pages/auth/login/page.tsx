@@ -4,9 +4,9 @@ import { AuthLayout } from "@/app/components/auth/auth-layout";
 import { LoginForm } from "@/app/components/auth/login-form";
 
 export const metadata: Metadata = {
-  title: "Login — Servixa",
+  title: "Login — BestBuild",
   description:
-    "Log in to Servixa to manage your home projects, quotes, and messages.",
+    "Log in to BestBuild to manage your home projects, quotes, and messages.",
 };
 
 const TERMINAL_LINES = [

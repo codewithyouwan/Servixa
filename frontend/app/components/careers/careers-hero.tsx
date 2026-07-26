@@ -19,7 +19,7 @@ export function CareersHero() {
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-28">
         <div className="flex flex-col items-start gap-6">
           <p className="animate-fade-up inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1 text-xs font-semibold tracking-wide text-primary uppercase">
-            Careers at Servixa
+            Careers at BestBuild
           </p>
 
           <h1

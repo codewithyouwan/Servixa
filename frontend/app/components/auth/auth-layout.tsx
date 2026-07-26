@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CircleCheck } from "lucide-react";
+
+import { AuthPanelCopy } from "@/app/components/auth/auth-panel-copy";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -42,35 +43,25 @@ export function AuthLayout({
         <Link
           href="/pages/main"
           className="relative flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
-          aria-label="Servixa home"
+          aria-label="BestBuild home"
         >
           <span
             aria-hidden="true"
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted-teal-400 text-sm font-bold text-space-indigo-950"
           >
-            S
+            B
           </span>
-          <span className="text-lg font-semibold tracking-tight">Servixa</span>
+          <span className="text-lg font-semibold tracking-tight">BestBuild</span>
         </Link>
 
         <div className="relative max-w-md">
-          <h2 className="text-3xl font-semibold tracking-tight text-balance xl:text-4xl">
-            {panelTitle}
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-blue-slate-300">
-            {panelDescription}
-          </p>
-          <ul className="mt-8 space-y-3">
-            {PANEL_POINTS.map((point) => (
-              <li key={point} className="flex items-start gap-2.5 text-sm">
-                <CircleCheck
-                  aria-hidden="true"
-                  className="mt-0.5 h-4 w-4 shrink-0 text-tea-green-400"
-                />
-                <span className="text-blue-slate-200">{point}</span>
-              </li>
-            ))}
-          </ul>
+          {/* Reacts to the selected account type on sign-up (via
+              AccountTypeProvider); renders the static fallbacks on Login. */}
+          <AuthPanelCopy
+            fallbackTitle={panelTitle}
+            fallbackDescription={panelDescription}
+            fallbackPoints={PANEL_POINTS}
+          />
         </div>
 
         <p className="relative text-xs text-blue-slate-400">
@@ -85,16 +76,16 @@ export function AuthLayout({
           <Link
             href="/pages/main"
             className="mb-8 flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:hidden"
-            aria-label="Servixa home"
+            aria-label="BestBuild home"
           >
             <span
               aria-hidden="true"
               className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
             >
-              S
+              B
             </span>
             <span className="text-lg font-semibold tracking-tight text-foreground">
-              Servixa
+              BestBuild
             </span>
           </Link>
           {children}

@@ -52,7 +52,7 @@ export function PopularServices() {
               <Reveal key={service.label} delay={(index % 4) * 80}>
                 <Link
                   href="/pages/auth/signup"
-                  className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all duration-300 outline-none hover:-translate-y-1 hover:border-ring/50 hover:shadow-lg hover:shadow-blue-slate-200/60 focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all duration-300 outline-none hover:-translate-y-1 hover:border-ring/50 hover:shadow-lg hover:shadow-blue-slate-200/60 dark:shadow-black/40 focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <Icon aria-hidden="true" className="h-5 w-5" />

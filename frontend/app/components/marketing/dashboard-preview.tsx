@@ -18,7 +18,7 @@ export function DashboardPreview() {
       eyebrow="Project Dashboard"
       title="Watch your project come to life"
       accent="come to life"
-      description="After you hire, Servixa keeps working. Milestones, daily photo updates, shared files, and messages live in one dashboard — so you always know exactly where your project stands."
+      description="After you hire, BestBuild keeps working. Milestones, daily photo updates, shared files, and messages live in one dashboard — so you always know exactly where your project stands."
       bullets={[
         "Milestone tracking with clear completion states",
         "Daily progress photos from your service provider",
@@ -29,7 +29,7 @@ export function DashboardPreview() {
       ctaHref="/pages/auth/signup"
       visualSide="left"
     >
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60 dark:shadow-black/40">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">

@@ -24,7 +24,7 @@ export function AiAssistantPreview() {
       ctaHref="/pages/auth/signup"
       visualSide="right"
     >
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-xl shadow-blue-slate-200/60 dark:shadow-black/40">
         {/* Homeowner message */}
         <div className="flex items-start justify-end gap-3">
           <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-primary px-4 py-3 text-sm text-primary-foreground">

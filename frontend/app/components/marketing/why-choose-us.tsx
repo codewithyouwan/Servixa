@@ -54,11 +54,11 @@ const REASONS = [
  */
 export function WhyChooseUs() {
   return (
-    <section aria-label="Why choose Servixa" className="scroll-mt-24 bg-muted/40">
+    <section aria-label="Why choose BestBuild" className="scroll-mt-24 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Why Servixa"
+            eyebrow="Why BestBuild"
             title="Built different, on purpose"
             accent="on purpose"
             description="Legacy platforms sell your contact info to a list of contractors. We match you with the right professionals — intelligently."
@@ -70,7 +70,7 @@ export function WhyChooseUs() {
             const Icon = reason.icon;
             return (
               <Reveal key={reason.title} delay={(index % 3) * 90}>
-                <div className="h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60">
+                <div className="h-full rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-slate-200/60 dark:shadow-black/40">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
                     <Icon aria-hidden="true" className="h-5 w-5" />
                   </span>

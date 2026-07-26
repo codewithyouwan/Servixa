@@ -36,7 +36,7 @@ export function CareersCta() {
           </p>
           <div className="mt-9 flex justify-center">
             <Link
-              href="mailto:careers@servixa.com"
+              href="mailto:careers@bestbuild.com"
               className={cn(
                 buttonVariants({ variant: "default", size: "lg" }),
                 "group h-12 rounded-full bg-muted-teal-400 px-8 text-base text-space-indigo-950 hover:bg-muted-teal-300"

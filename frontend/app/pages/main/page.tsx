@@ -22,7 +22,7 @@ import { FinalCta } from "@/app/components/marketing/final-cta";
 import { Footer } from "@/app/components/marketing/footer";
 
 export const metadata: Metadata = {
-  title: "Servixa — AI-Powered Construction Marketplace",
+  title: "BestBuild — AI-Powered Construction Marketplace",
   description:
     "Post your home project and get matched with verified, AI-vetted service providers near you — free to post, no obligation.",
 };
