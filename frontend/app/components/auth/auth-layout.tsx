@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CircleCheck } from "lucide-react";
+
+import { AuthPanelCopy } from "@/app/components/auth/auth-panel-copy";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -54,23 +55,13 @@ export function AuthLayout({
         </Link>
 
         <div className="relative max-w-md">
-          <h2 className="text-3xl font-semibold tracking-tight text-balance xl:text-4xl">
-            {panelTitle}
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-blue-slate-300">
-            {panelDescription}
-          </p>
-          <ul className="mt-8 space-y-3">
-            {PANEL_POINTS.map((point) => (
-              <li key={point} className="flex items-start gap-2.5 text-sm">
-                <CircleCheck
-                  aria-hidden="true"
-                  className="mt-0.5 h-4 w-4 shrink-0 text-tea-green-400"
-                />
-                <span className="text-blue-slate-200">{point}</span>
-              </li>
-            ))}
-          </ul>
+          {/* Reacts to the selected account type on sign-up (via
+              AccountTypeProvider); renders the static fallbacks on Login. */}
+          <AuthPanelCopy
+            fallbackTitle={panelTitle}
+            fallbackDescription={panelDescription}
+            fallbackPoints={PANEL_POINTS}
+          />
         </div>
 
         <p className="relative text-xs text-blue-slate-400">

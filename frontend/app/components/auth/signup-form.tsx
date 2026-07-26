@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SocialLogin } from "@/app/components/auth/social-login";
-import { AccountTypeSegmented } from "@/app/components/auth/account-type-segmented";
-import type { AccountType } from "@/app/components/auth/account-type-selector";
+import {
+  AccountTypeSelector,
+  type AccountType,
+} from "@/app/components/auth/account-type-selector";
+import { useAccountTypeContext } from "@/app/components/auth/account-type-context";
 import {
   PasswordChecklist,
   isPasswordValid,
@@ -33,7 +36,11 @@ export function SignupForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [zip, setZip] = useState("");
-  const [accountType, setAccountType] = useState<AccountType>("homeowner");
+  // Shared with the brand panel (left side) when the provider is present,
+  // so the panel copy reacts to the selection; local state otherwise.
+  const sharedAccountType = useAccountTypeContext();
+  const localAccountType = useState<AccountType>("homeowner");
+  const [accountType, setAccountType] = sharedAccountType ?? localAccountType;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -180,12 +187,7 @@ export function SignupForm() {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <span className="block text-xs font-medium text-foreground">
-              Account type
-            </span>
-            <AccountTypeSegmented value={accountType} onChange={setAccountType} />
-          </div>
+          <AccountTypeSelector value={accountType} onChange={setAccountType} />
 
           {error && (
             <p role="alert" className="text-xs font-medium text-destructive">
