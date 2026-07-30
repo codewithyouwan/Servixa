@@ -2,8 +2,9 @@
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import interrupt, Command
-from state import MarketplaceState
-from config import MarketplaceConfig
+# from state import MarketplaceState
+# from config import MarketplaceConfig
+from .schemas import MarketplaceState, MarketplaceConfig
 from subgraphs.security import build_security_subgraph
 from subgraphs.routing_qa import build_routing_qa_subgraph
 from subgraphs.intake import build_intake_subgraph

@@ -2,7 +2,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.types import interrupt, Command
 from langgraph.checkpoint.memory import MemorySaver
 from typing import Literal
-from schemas import MarketplaceConfig,MarketplaceState
+from .schemas import MarketplaceConfig,MarketplaceState
 
 # Assuming MarketplaceState & MarketplaceConfig are imported from your schema module
 # from .schema import MarketplaceState, MarketplaceConfig
