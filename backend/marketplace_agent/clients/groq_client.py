@@ -41,7 +41,8 @@ import time
 from typing import Any, Callable, Sequence
 from dotenv import load_dotenv
 
-file_path = Path(__file__).parent.parent.parent / '.env'
+# clients/ -> marketplace_agent/ -> backend/ -> Servixa/.env
+file_path = Path(__file__).parent.parent.parent.parent / '.env'
 load_dotenv(file_path)
 
 from groq import APIConnectionError, APIStatusError, APITimeoutError, RateLimitError
