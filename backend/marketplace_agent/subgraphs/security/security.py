@@ -1,9 +1,9 @@
 # marketplace_agent/subgraphs/security.py
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import interrupt, Command
-from state import MarketplaceState
-from config import MarketplaceConfig
-
+# from state import MarketplaceState
+# from config import MarketplaceConfig
+from graph.schemas import MarketplaceState, MarketplaceConfig
 def moderation_node(state: MarketplaceState) -> dict:
     # TODO: 1. Extract latest message from state["user_messages"][-1].
     # TODO: 2. Run 4-class LLM/Regex classifier: injection > violates > outofscope > passed.
