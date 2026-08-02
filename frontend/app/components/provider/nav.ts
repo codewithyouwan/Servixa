@@ -12,12 +12,18 @@ import {
 import { PROVIDER_ROUTES } from "@/lib/provider/constants";
 import type { ShellConfig } from "@/app/components/shared/shell/nav";
 
-/** Service-provider (CRM) module shell configuration. */
+/**
+ * Service-provider (CRM) module shell configuration.
+ *
+ * No topbar CTA: unlike the homeowner's "Post a Project" (a creation
+ * action with no other entry point), "View Leads" was a 1:1 duplicate of
+ * the "Leads" sidebar item — same label, same destination, just shown
+ * twice. Providers don't create leads (they come from the matching
+ * engine), so there's no equivalent creation action to put here.
+ */
 export const PROVIDER_SHELL: ShellConfig = {
   homeHref: PROVIDER_ROUTES.dashboard,
   settingsHref: PROVIDER_ROUTES.settings,
-  // Inbox (not the default "+") — this opens the leads list, it doesn't create anything.
-  cta: { label: "View Leads", href: PROVIDER_ROUTES.leads, icon: Inbox },
   navItems: [
     { label: "Overview", href: PROVIDER_ROUTES.dashboard, icon: LayoutDashboard },
     { label: "Leads", href: PROVIDER_ROUTES.leads, icon: Inbox },
