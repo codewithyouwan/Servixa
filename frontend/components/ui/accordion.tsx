@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
-import { ChevronDown } from "lucide-react"
+import { Minus, Plus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -37,9 +37,14 @@ function AccordionTrigger({
         {...props}
       >
         {children}
-        <ChevronDown
+        {/* Flat open/closed indicator — a plain icon swap, no rotation/transform. */}
+        <Plus
           aria-hidden
-          className="size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-out group-data-[panel-open]/accordion-trigger:rotate-180"
+          className="size-4 shrink-0 text-muted-foreground group-data-[panel-open]/accordion-trigger:hidden"
+        />
+        <Minus
+          aria-hidden
+          className="hidden size-4 shrink-0 text-muted-foreground group-data-[panel-open]/accordion-trigger:block"
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
