@@ -11,6 +11,7 @@ import { useProviderDashboard } from "@/lib/provider/hooks/use-provider-dashboar
 import { ProviderWelcomeHeader } from "@/app/components/provider/welcome-header";
 import { ProviderStatGrid } from "@/app/components/provider/stat-grid";
 import { IncomingLeads } from "@/app/components/provider/incoming-leads";
+import { ProviderAiAssistantCard } from "@/app/components/provider/ai-assistant-card";
 import { TrustPanel } from "@/app/components/provider/trust-panel";
 import { ProviderQuotesTable } from "@/app/components/provider/quotes-table";
 import { ActiveJobs } from "@/app/components/provider/active-jobs";
@@ -42,9 +43,8 @@ export default function ProviderOverviewPage() {
           <ProviderQuotesTable quotes={data.recentQuotes} />
         </div>
         <div className="space-y-4">
+          <ProviderAiAssistantCard />
           <TrustPanel trust={data.trust} />
-          <RemindersCard reminders={data.reminders} />
-          <VerificationCard items={data.verification} />
         </div>
       </div>
 
@@ -54,6 +54,8 @@ export default function ProviderOverviewPage() {
           <ReviewsList reviews={data.reviews} />
         </div>
         <div className="space-y-4">
+          <RemindersCard reminders={data.reminders} />
+          <VerificationCard items={data.verification} />
           <LeadsChart points={data.leadTrend} />
           <ProviderActivityFeed items={data.recentActivity} />
         </div>

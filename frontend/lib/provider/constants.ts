@@ -9,6 +9,7 @@ export const PROVIDER_ROUTES = {
   messages: "/pages/provider/messages",
   reviews: "/pages/provider/reviews",
   portfolio: "/pages/provider/portfolio",
+  assistant: "/pages/provider/assistant",
   profile: "/pages/provider/profile",
   settings: "/pages/provider/settings",
 } as const;

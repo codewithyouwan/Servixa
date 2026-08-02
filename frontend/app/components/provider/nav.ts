@@ -1,4 +1,5 @@
 import {
+  Bot,
   FolderKanban,
   Images,
   Inbox,
@@ -24,5 +25,6 @@ export const PROVIDER_SHELL: ShellConfig = {
     { label: "Messages", href: PROVIDER_ROUTES.messages, icon: MessageSquare },
     { label: "Reviews", href: PROVIDER_ROUTES.reviews, icon: Star },
     { label: "Portfolio", href: PROVIDER_ROUTES.portfolio, icon: Images },
+    { label: "AI Assistant", href: PROVIDER_ROUTES.assistant, icon: Bot },
   ],
 };
