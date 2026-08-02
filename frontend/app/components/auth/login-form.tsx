@@ -20,8 +20,8 @@ export function LoginForm() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // TODO: wire to auth API. For now, go to the landing page.
-    router.push("/pages/main");
+    // TODO: wire to auth API. For now, go to the homeowner dashboard.
+    router.push("/pages/dashboard");
   }
 
   return (
