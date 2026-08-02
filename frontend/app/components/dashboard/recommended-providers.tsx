@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock, MapPin, Star, Users } from "lucide-react";
 
-import type { RecommendedProvider } from "@/lib/types";
+import type { RecommendedProvider } from "@/lib/homeowner/types";
 import { ROUTES } from "@/lib/constants/routes";
 import { initials } from "@/lib/utils/format";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "./states";
+import { EmptyState } from "@/app/components/shared/states";
 
 function ProviderCard({ provider }: { provider: RecommendedProvider }) {
   return (

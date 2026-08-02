@@ -11,7 +11,7 @@ import {
 import type { ActivityItem, ActivityKind } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "./states";
+import { EmptyState } from "@/app/components/shared/states";
 
 const KIND_ICON: Record<ActivityKind, LucideIcon> = {
   project_created: FolderPlus,

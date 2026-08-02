@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, FolderKanban, MapPin, MessageSquare, ReceiptText } from "lucide-react";
 
-import type { Project } from "@/lib/types";
+import type { Project } from "@/lib/homeowner/types";
 import { PROJECT_STATUS } from "@/lib/constants/status";
 import { categoryLabel } from "@/lib/constants/service-categories";
 import { ROUTES } from "@/lib/constants/routes";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { EmptyState } from "./states";
+import { EmptyState } from "@/app/components/shared/states";
 
 function ProjectRow({ project }: { project: Project }) {
   const status = PROJECT_STATUS[project.status];

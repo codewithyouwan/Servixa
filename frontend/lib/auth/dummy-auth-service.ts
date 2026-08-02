@@ -1,19 +1,24 @@
 /**
  * DummyAuthService — stands in for the future FastAPI JWT flow.
- * Always resolves an authenticated homeowner session.
+ * Resolves an authenticated mock session for the requested dev role.
  */
 
-import type { AuthSession, User } from "@/lib/types";
-import type { AuthService, LoginCredentials } from "./auth-service";
+import type { AuthSession, User, UserRole } from "@/lib/types";
+import type { AuthService, LoginCredentials, SessionOptions } from "./auth-service";
 import { createMockSession } from "./mock-session";
 
 export class DummyAuthService implements AuthService {
   private session: AuthSession | null = null;
+  private role: UserRole = "homeowner";
 
-  async getSession(): Promise<AuthSession | null> {
+  async getSession(options?: SessionOptions): Promise<AuthSession | null> {
+    if (options?.devRole && options.devRole !== this.role) {
+      this.role = options.devRole;
+      this.session = null;
+    }
     if (!this.session || this.session.expiresAt <= Date.now()) {
       // Auto-login: mimics a persisted session being restored.
-      this.session = createMockSession();
+      this.session = createMockSession(this.role);
     }
     return this.session;
   }
@@ -28,7 +33,7 @@ export class DummyAuthService implements AuthService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature matches AuthService; credentials unused until real auth
   async login(_credentials: LoginCredentials): Promise<AuthSession> {
-    this.session = createMockSession();
+    this.session = createMockSession(this.role);
     return this.session;
   }
 

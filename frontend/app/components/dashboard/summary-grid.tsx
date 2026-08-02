@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { DashboardSummary } from "@/lib/types";
+import type { DashboardSummary } from "@/lib/homeowner/types";
 import { ROUTES } from "@/lib/constants/routes";
 import { Card, CardContent } from "@/components/ui/card";
 

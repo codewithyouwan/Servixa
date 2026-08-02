@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, ReceiptText } from "lucide-react";
 
-import type { Quote } from "@/lib/types";
+import type { Quote } from "@/lib/homeowner/types";
 import { QUOTE_STATUS } from "@/lib/constants/status";
 import { ROUTES } from "@/lib/constants/routes";
 import { formatCurrency, formatRelativeTime, initials } from "@/lib/utils/format";
@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EmptyState } from "./states";
+import { EmptyState } from "@/app/components/shared/states";
 
 const MAX_ROWS = 5;
 

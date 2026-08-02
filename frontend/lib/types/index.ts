@@ -1,7 +1,10 @@
+/**
+ * Shared, module-agnostic types only.
+ * Homeowner domain types live in lib/homeowner/types;
+ * service-provider domain types live in lib/provider/types.
+ */
+
 export * from "./user";
-export * from "./project";
-export * from "./quote";
-export * from "./provider";
-export * from "./notification";
-export * from "./dashboard";
 export * from "./api";
+export * from "./notification";
+export * from "./domain";

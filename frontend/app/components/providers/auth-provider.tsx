@@ -15,7 +15,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { AuthSession, User } from "@/lib/types";
+import type { AuthSession, User, UserRole } from "@/lib/types";
 import { authService } from "@/lib/auth";
 
 interface AuthContextValue {
@@ -27,13 +27,22 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+interface AuthProviderProps {
+  children: ReactNode;
+  /**
+   * DEV ONLY: mock role resolved while auth is stubbed. With real JWT auth
+   * the role comes from the token and this prop is ignored, then removed.
+   */
+  role?: UserRole;
+}
+
+export function AuthProvider({ children, role = "homeowner" }: AuthProviderProps) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    authService.getSession().then((s) => {
+    authService.getSession({ devRole: role }).then((s) => {
       if (!cancelled) {
         setSession(s);
         setLoading(false);
@@ -42,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [role]);
 
   const logout = useCallback(async () => {
     await authService.logout();

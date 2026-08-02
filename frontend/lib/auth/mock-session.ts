@@ -1,6 +1,6 @@
-/** Dummy authenticated homeowner + fake JWT. Dev-only fixture — never ships to production auth. */
+/** Dummy authenticated users + fake JWT. Dev-only fixtures — never ship to production auth. */
 
-import type { AuthSession, User } from "@/lib/types";
+import type { AuthSession, User, UserRole } from "@/lib/types";
 
 export const MOCK_HOMEOWNER: User = {
   id: "0198c5f2-0000-7000-8000-3f6a1b2c4d5e",
@@ -16,6 +16,27 @@ export const MOCK_HOMEOWNER: User = {
     country: "US",
   },
   createdAt: "2026-05-14T09:30:00Z",
+};
+
+export const MOCK_PROVIDER: User = {
+  id: "0198c5f2-0000-7000-8000-9a8b7c6d5e4f",
+  name: "Marcus Rivera",
+  email: "marcus@hillcountryroofing.com",
+  role: "service_provider",
+  avatarUrl: null,
+  address: {
+    line1: "88 Ranch Rd",
+    city: "Austin",
+    state: "TX",
+    postalCode: "78745",
+    country: "US",
+  },
+  createdAt: "2026-03-02T14:00:00Z",
+};
+
+const MOCK_USERS: Partial<Record<UserRole, User>> = {
+  homeowner: MOCK_HOMEOWNER,
+  service_provider: MOCK_PROVIDER,
 };
 
 /**
@@ -35,10 +56,11 @@ function fakeJwt(user: User): string {
   return `${header}.${payload}.dev-signature`;
 }
 
-export function createMockSession(): AuthSession {
+export function createMockSession(role: UserRole = "homeowner"): AuthSession {
+  const user = MOCK_USERS[role] ?? MOCK_HOMEOWNER;
   return {
-    user: MOCK_HOMEOWNER,
-    accessToken: fakeJwt(MOCK_HOMEOWNER),
+    user,
+    accessToken: fakeJwt(user),
     expiresAt: Date.now() + 60 * 60 * 1000,
   };
 }

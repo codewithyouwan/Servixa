@@ -1,4 +1,4 @@
-import { ComingSoon } from "@/app/components/dashboard/coming-soon";
+import { ComingSoon } from "@/app/components/shared/coming-soon";
 
 export default function NewProjectPage() {
   return (
