@@ -40,7 +40,8 @@ Tailwind
 Shadcn
 
 Backend:
-NestJS
+FastAPI (Python) — updated during implementation; architecture docs in
+docs/architecture/ predate this change and still mention NestJS.
 
 Database:
 PostgreSQL

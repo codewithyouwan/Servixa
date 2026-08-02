@@ -1,69 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export type Theme = "light" | "dark" | "system";
+export type Theme = "light" | "dark";
 
 const STORAGE_KEY = "bestbuild.theme";
-const ORDER: Theme[] = ["light", "dark", "system"];
 
 const META: Record<Theme, { icon: typeof Sun; label: string }> = {
   light: { icon: Sun, label: "Light theme" },
   dark: { icon: Moon, label: "Dark theme" },
-  system: { icon: Monitor, label: "System theme" },
 };
 
+function resolveInitialTheme(): Theme {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+  // No explicit choice yet (or a legacy "system" value) — adopt the OS
+  // preference once, then it becomes a normal, user-controlled choice.
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 function applyTheme(theme: Theme) {
-  const dark =
-    theme === "dark" ||
-    (theme === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.classList.toggle("dark", dark);
+  document.documentElement.classList.toggle("dark", theme === "dark");
 }
 
 /**
- * Three-state theme toggle (light → dark → system). Defaults to the
- * OS preference; the choice persists across visits.
+ * Two-state light/dark toggle. No separate "system" option: on first
+ * visit the OS preference is read once and adopted as the starting
+ * value (dark OS -> starts dark, light OS -> starts light), then it's
+ * just a plain toggle the user fully controls — it doesn't keep
+ * following OS changes afterward.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const [theme, setTheme] = useState<Theme | null>(null);
 
-  // Read the saved choice after mount (SSR-safe: localStorage isn't
-  // available during server render, so this must happen in an effect).
+  // Resolve after mount (SSR-safe: localStorage/matchMedia aren't
+  // available during server render) and persist the resolved choice so
+  // it's explicit from here on.
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration-safe localStorage read
-    setTheme(saved && ORDER.includes(saved) ? saved : "system");
+    const resolved = resolveInitialTheme();
+    localStorage.setItem(STORAGE_KEY, resolved);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration-safe resolution
+    setTheme(resolved);
   }, []);
 
-  // Re-apply + track OS changes while in system mode.
   useEffect(() => {
-    if (theme === null) return;
-    applyTheme(theme);
-    if (theme !== "system") return;
-    const query = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("system");
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
+    if (theme) applyTheme(theme);
   }, [theme]);
 
-  function cycle() {
+  function toggle() {
     if (theme === null) return;
-    const next = ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length];
+    const next: Theme = theme === "dark" ? "light" : "dark";
     localStorage.setItem(STORAGE_KEY, next);
     setTheme(next);
   }
 
-  const { icon: Icon, label } = META[theme ?? "system"];
+  const { icon: Icon, label } = META[theme ?? "light"];
 
   return (
     <button
       type="button"
-      onClick={cycle}
-      aria-label={`Theme: ${label}. Click to change.`}
+      onClick={toggle}
+      aria-label={`Theme: ${label}. Click to switch.`}
       title={label}
       className={cn(
         "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
