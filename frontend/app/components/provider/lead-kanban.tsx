@@ -2,10 +2,12 @@
 
 /**
  * Mini-CRM lead pipeline (spec: lead pipeline + accept/decline + status
- * tracking). Rendered as stacked vertical sections — one per stage — each
- * with its own scrollable list, rather than a horizontal Kanban board.
- * Horizontal columns forced sideways scrolling and hid most stages off
- * screen; stacking keeps every stage visible and readable top-to-bottom.
+ * tracking). Rendered as an accordion — one collapsible section per stage —
+ * so all five stages are visible at a glance (color-coded dot + count) and
+ * a stage's lead list only takes over the screen once opened. Opening/
+ * closing animates the panel height (Base UI's accordion primitive) rather
+ * than snapping. The "New" stage starts open since it's the one that needs
+ * action; each open panel's list scrolls independently once it grows.
  * Stage changes happen through explicit actions (accept/decline on new
  * leads) — no drag-and-drop dependency.
  */
@@ -13,19 +15,22 @@
 import { Check, Clock, Inbox, MapPin, X } from "lucide-react";
 
 import type { Lead, LeadStage } from "@/lib/provider/types";
-import { LEAD_STAGE, LEAD_STAGES } from "@/lib/provider/constants";
+import { LEAD_STAGE, LEAD_STAGE_ACCENT, LEAD_STAGES } from "@/lib/provider/constants";
 import { useLeads } from "@/lib/provider/hooks/use-leads";
 import { categoryLabel } from "@/lib/constants/service-categories";
 import { cn } from "@/lib/utils";
 import { formatBudgetRange, formatRelativeTime, hoursUntil } from "@/lib/utils/format";
+import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/app/components/shared/states";
 
 /** Stage-list height: enough to show ~2.5 rows before it scrolls internally. */
 const LIST_MAX_HEIGHT = "max-h-[380px]";
+
+/** Stages open by default — "new" is the one that needs action. */
+const DEFAULT_OPEN: LeadStage[] = ["new"];
 
 function formatSlaWindow(iso: string): string {
   const hours = hoursUntil(iso);
@@ -94,7 +99,7 @@ function LeadRow({ lead, busy, onAccept, onDecline }: LeadRowProps) {
   );
 }
 
-interface StageSectionProps {
+interface StageAccordionItemProps {
   stage: LeadStage;
   leads: Lead[];
   mutating: ReadonlySet<string>;
@@ -102,21 +107,22 @@ interface StageSectionProps {
   onDecline: (id: string) => void;
 }
 
-function StageSection({ stage, leads, mutating, onAccept, onDecline }: StageSectionProps) {
+function StageAccordionItem({ stage, leads, mutating, onAccept, onDecline }: StageAccordionItemProps) {
   const config = LEAD_STAGE[stage];
+  const accent = LEAD_STAGE_ACCENT[stage];
+
   return (
-    <Card>
-      <CardHeader className="flex items-center justify-between">
-        <span className="flex items-center gap-2">
-          <Badge variant="muted" className={cn(config.className)}>
-            {config.label}
-          </Badge>
+    <AccordionItem value={stage} className={cn("border-l-4", accent.border)}>
+      <AccordionTrigger>
+        <span className="flex items-center gap-2.5">
+          <span className={cn("size-2 shrink-0 rounded-full", accent.dot)} aria-hidden />
+          <span className="text-sm font-medium">{config.label}</span>
           <span className="text-xs font-medium tabular-nums text-muted-foreground">
             {leads.length} {leads.length === 1 ? "lead" : "leads"}
           </span>
         </span>
-      </CardHeader>
-      <CardContent>
+      </AccordionTrigger>
+      <AccordionPanel>
         {leads.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
             No leads in this stage
@@ -134,8 +140,8 @@ function StageSection({ stage, leads, mutating, onAccept, onDecline }: StageSect
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </AccordionPanel>
+    </AccordionItem>
   );
 }
 
@@ -144,9 +150,9 @@ export function LeadKanban() {
 
   if (loading) {
     return (
-      <div className="space-y-4" aria-busy="true" aria-label="Loading pipeline">
+      <div className="space-y-3" aria-busy="true" aria-label="Loading pipeline">
         {LEAD_STAGES.map((s) => (
-          <Skeleton key={s} className="h-40 rounded-xl" />
+          <Skeleton key={s} className="h-14 rounded-xl" />
         ))}
       </div>
     );
@@ -169,9 +175,9 @@ export function LeadKanban() {
   }
 
   return (
-    <div className="space-y-4">
+    <Accordion defaultValue={DEFAULT_OPEN} className="space-y-3">
       {LEAD_STAGES.map((stage) => (
-        <StageSection
+        <StageAccordionItem
           key={stage}
           stage={stage}
           leads={leads.filter((l) => l.stage === stage)}
@@ -180,6 +186,6 @@ export function LeadKanban() {
           onDecline={decline}
         />
       ))}
-    </div>
+    </Accordion>
   );
 }

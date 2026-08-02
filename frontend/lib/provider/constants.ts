@@ -26,7 +26,20 @@ export const LEAD_STAGE: Record<LeadStage, StageConfig> = {
   lost: { label: "Lost", className: "bg-muted text-muted-foreground" },
 };
 
-/** Kanban column order. */
+/**
+ * Per-stage accent color used for the pipeline's dot indicator + left
+ * border strip, so each stage is recognizable at a glance beyond its
+ * text badge (added alongside the accordion redesign).
+ */
+export const LEAD_STAGE_ACCENT: Record<LeadStage, { dot: string; border: string }> = {
+  new: { dot: "bg-tea-green-500", border: "border-l-tea-green-500" },
+  contacted: { dot: "bg-blue-slate-400", border: "border-l-blue-slate-400" },
+  quoted: { dot: "bg-primary", border: "border-l-primary" },
+  won: { dot: "bg-success", border: "border-l-success" },
+  lost: { dot: "bg-muted-foreground/50", border: "border-l-muted-foreground/50" },
+};
+
+/** Pipeline section order. */
 export const LEAD_STAGES: LeadStage[] = ["new", "contacted", "quoted", "won", "lost"];
 
 export const VERIFICATION_STATUS: Record<VerificationStatus, StageConfig> = {
