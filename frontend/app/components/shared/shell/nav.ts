@@ -11,6 +11,8 @@ export interface NavItem {
 export interface ShellCta {
   label: string;
   href: string;
+  /** Defaults to a "+" (create) icon if omitted — override for non-creation actions. */
+  icon?: LucideIcon;
 }
 
 export interface ShellConfig {

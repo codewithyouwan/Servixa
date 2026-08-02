@@ -18,6 +18,8 @@ interface TopbarProps {
 }
 
 export function Topbar({ config, user, notifications }: TopbarProps) {
+  const CtaIcon = config.cta?.icon ?? Plus;
+
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       {/* Brand shown on mobile where the sidebar is hidden */}
@@ -32,7 +34,7 @@ export function Topbar({ config, user, notifications }: TopbarProps) {
       <div className="flex items-center gap-1.5">
         {config.cta && (
           <Button size="sm" render={<Link href={config.cta.href} />}>
-            <Plus data-icon="inline-start" aria-hidden />
+            <CtaIcon data-icon="inline-start" aria-hidden />
             {config.cta.label}
           </Button>
         )}

@@ -16,7 +16,8 @@ import type { ShellConfig } from "@/app/components/shared/shell/nav";
 export const PROVIDER_SHELL: ShellConfig = {
   homeHref: PROVIDER_ROUTES.dashboard,
   settingsHref: PROVIDER_ROUTES.settings,
-  cta: { label: "View Leads", href: PROVIDER_ROUTES.leads },
+  // Inbox (not the default "+") — this opens the leads list, it doesn't create anything.
+  cta: { label: "View Leads", href: PROVIDER_ROUTES.leads, icon: Inbox },
   navItems: [
     { label: "Overview", href: PROVIDER_ROUTES.dashboard, icon: LayoutDashboard },
     { label: "Leads", href: PROVIDER_ROUTES.leads, icon: Inbox },
