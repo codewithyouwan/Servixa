@@ -112,7 +112,7 @@ function StageAccordionItem({ stage, leads, mutating, onAccept, onDecline }: Sta
   const accent = LEAD_STAGE_ACCENT[stage];
 
   return (
-    <AccordionItem value={stage} className={cn("border-l-4", accent.border)}>
+    <AccordionItem value={stage}>
       <AccordionTrigger>
         <span className="flex items-center gap-2.5">
           <span className={cn("size-2 shrink-0 rounded-full", accent.dot)} aria-hidden />
