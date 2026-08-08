@@ -110,6 +110,10 @@
   --primary-foreground: var(--color-blue-slate-50);
   --primary-hover: var(--color-muted-teal-700);
 
+  /* Two-tone logo mark: Ink left B, Structure Teal right B */
+  --logo-ink: #212832;
+  --logo-accent: #157e7c;
+
   /* Secondary utilizes the clean Mineral Teal accents */
   --secondary: var(--color-mineral-teal-100);
   --secondary-foreground: var(--color-mineral-teal-800);
@@ -222,6 +226,11 @@ body {
   --primary: var(--color-muted-teal-300);
   --primary-foreground: var(--color-space-indigo-950);
   --primary-hover: var(--color-muted-teal-200);
+
+  /* Ink B swaps to an off-white so it stays visible on dark backgrounds;
+     the accent B brightens to the same teal used for dark-mode primary. */
+  --logo-ink: var(--color-blue-slate-50);
+  --logo-accent: var(--color-muted-teal-300);
 
   --secondary: var(--color-space-indigo-900);
   --secondary-foreground: var(--color-blue-slate-50);

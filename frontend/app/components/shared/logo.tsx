@@ -7,6 +7,12 @@ import { cn } from "@/lib/utils";
  * Pure stroke paths (no fills), so it scales cleanly from favicon to hero.
  */
 
+// Two-tone reads from CSS custom properties (see globals.css) so it
+// automatically swaps to a light ink for dark mode instead of going
+// invisible. Fixed tones ("light"/"ink"/"accent") stay hardcoded since
+// they're used on backgrounds whose color doesn't depend on the theme.
+const INK_VAR = "var(--logo-ink)";
+const ACCENT_VAR = "var(--logo-accent)";
 const INK = "#212832";
 const TEAL = "#157E7C";
 const WHITE = "#FFFFFF";
@@ -32,8 +38,8 @@ interface LogoMarkProps {
 }
 
 export function LogoMark({ className, size = 32, tone = "two-tone", strokeWidth = 10 }: LogoMarkProps) {
-  const leftColor = tone === "two-tone" ? INK : tone === "light" ? WHITE : tone === "accent" ? TEAL : INK;
-  const rightColor = tone === "two-tone" ? TEAL : tone === "light" ? WHITE : tone === "accent" ? TEAL : INK;
+  const leftColor = tone === "two-tone" ? INK_VAR : tone === "light" ? WHITE : tone === "accent" ? TEAL : INK;
+  const rightColor = tone === "two-tone" ? ACCENT_VAR : tone === "light" ? WHITE : tone === "accent" ? TEAL : INK;
 
   return (
     <svg
