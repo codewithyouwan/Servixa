@@ -6,6 +6,7 @@ import { Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants/routes";
+import { Logo } from "@/app/components/shared/logo";
 import type { ShellConfig } from "./nav";
 
 export function Sidebar({ config }: { config: ShellConfig }) {
@@ -14,8 +15,12 @@ export function Sidebar({ config }: { config: ShellConfig }) {
   return (
     <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
       <div className="flex h-14 items-center border-b border-sidebar-border px-5">
-        <Link href={ROUTES.home} className="text-base font-semibold tracking-tight text-sidebar-foreground">
-          Best<span className="text-primary">Build</span>
+        <Link
+          href={ROUTES.home}
+          className="rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          aria-label="BestBuild home"
+        >
+          <Logo markSize={26} wordmarkClassName="text-base" />
         </Link>
       </div>
 

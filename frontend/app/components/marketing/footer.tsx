@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Logo } from "@/app/components/shared/logo";
+
 const FOOTER_COLUMNS = [
   {
     heading: "Platform",
@@ -54,15 +56,7 @@ export function Footer() {
               className="flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               aria-label="BestBuild home"
             >
-              <span
-                aria-hidden="true"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
-              >
-                B
-              </span>
-              <span className="text-lg font-semibold tracking-tight text-foreground">
-                BestBuild
-              </span>
+              <Logo markSize={32} />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               The AI-powered construction marketplace connecting homeowners,

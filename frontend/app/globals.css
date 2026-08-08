@@ -5,80 +5,90 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* ============================
-     Tea Green — energetic, bright accent green
-     ============================ */
-  --color-tea-green-50: #ecfbea;
-  --color-tea-green-100: #d9f6d5;
-  --color-tea-green-200: #b3edab;
-  --color-tea-green-300: #8ce481;
-  --color-tea-green-400: #66db57;
-  --color-tea-green-500: #40d22d;
-  --color-tea-green-600: #33a824;
-  --color-tea-green-700: #267e1b;
-  --color-tea-green-800: #1a5412;
-  --color-tea-green-900: #0d2a09;
-  --color-tea-green-950: #091d06;
+  /*
+   * Palette rebuilt around the BestBuild "Pillar" double-B logo mark:
+   *   Structure Teal #157E7C (logo accent B)   -> muted-teal (PRIMARY)
+   *   Ink            #212832 (logo ink B)      -> anchors foreground/dark text
+   *   Blueprint Indigo #3D56AC (deep accent)   -> space-indigo (premium dark)
+   *   Warm Gray #8B8D91 / Soft Gray #E8E8E4 / Off-White #FAFAF7 -> blue-slate (neutral)
+   * tea-green and mineral-teal are teal-adjacent hues (not an unrelated
+   * green) so every family reads as one family, not five different brands.
+   */
 
   /* ============================
-     Muted Teal — organic, soft sage-teal mid-tone
+     Tea Green — teal-adjacent success/accent green
      ============================ */
-  --color-muted-teal-50: #eff5f0;
-  --color-muted-teal-100: #e0ebe1;
-  --color-muted-teal-200: #c1d7c2;
-  --color-muted-teal-300: #a2c3a4;
-  --color-muted-teal-400: #83af86;
-  --color-muted-teal-500: #639c67;
-  --color-muted-teal-600: #507c53;
-  --color-muted-teal-700: #3c5d3e;
-  --color-muted-teal-800: #283e29;
-  --color-muted-teal-900: #141f15;
-  --color-muted-teal-950: #0e160e;
+  --color-tea-green-50: #e9f7f0;
+  --color-tea-green-100: #c3ead8;
+  --color-tea-green-200: #9ce0c0;
+  --color-tea-green-300: #73d7a8;
+  --color-tea-green-400: #48cf90;
+  --color-tea-green-500: #2cba77;
+  --color-tea-green-600: #289a65;
+  --color-tea-green-700: #237b52;
+  --color-tea-green-800: #1d5d3f;
+  --color-tea-green-900: #16402d;
+  --color-tea-green-950: #0e251a;
 
   /* ============================
-     Mineral Teal — cool, slate-tinted structural teal
+     Muted Teal — Structure Teal (#157E7C), the logo's accent B — PRIMARY
      ============================ */
-  --color-mineral-teal-50: #f1f4f3;
-  --color-mineral-teal-100: #e3e8e7;
-  --color-mineral-teal-200: #c6d2ce;
-  --color-mineral-teal-300: #aabbb6;
-  --color-mineral-teal-400: #8ea49d;
-  --color-mineral-teal-500: #718e85;
-  --color-mineral-teal-600: #5b716a;
-  --color-mineral-teal-700: #445550;
-  --color-mineral-teal-800: #2d3935;
-  --color-mineral-teal-900: #171c1b;
-  --color-mineral-teal-950: #101413;
+  --color-muted-teal-50: #f0f7f7;
+  --color-muted-teal-100: #c9e5e5;
+  --color-muted-teal-200: #9ed8d7;
+  --color-muted-teal-300: #6fcecd;
+  --color-muted-teal-400: #3bc9c7;
+  --color-muted-teal-500: #24a7a5;
+  --color-muted-teal-600: #157e7c;
+  --color-muted-teal-700: #156362;
+  --color-muted-teal-800: #144a49;
+  --color-muted-teal-900: #103332;
+  --color-muted-teal-950: #0b1e1d;
 
   /* ============================
-     Blue Slate — cool, grounding slate gray-blue
+     Mineral Teal — cool, slate-tinted structural teal (secondary)
      ============================ */
-  --color-blue-slate-50: #f0f1f5;
-  --color-blue-slate-100: #e1e3ea;
-  --color-blue-slate-200: #c3c7d5;
-  --color-blue-slate-300: #a5acc0;
-  --color-blue-slate-400: #8790ab;
-  --color-blue-slate-500: #697496;
-  --color-blue-slate-600: #545d78;
-  --color-blue-slate-700: #3f465a;
-  --color-blue-slate-800: #2a2e3c;
-  --color-blue-slate-900: #15171e;
-  --color-blue-slate-950: #0f1015;
+  --color-mineral-teal-50: #f4f6f6;
+  --color-mineral-teal-100: #dae1e1;
+  --color-mineral-teal-200: #bfcccd;
+  --color-mineral-teal-300: #a3b9b9;
+  --color-mineral-teal-400: #88a5a6;
+  --color-mineral-teal-500: #6b9394;
+  --color-mineral-teal-600: #5a7c7e;
+  --color-mineral-teal-700: #486667;
+  --color-mineral-teal-800: #374f50;
+  --color-mineral-teal-900: #273939;
+  --color-mineral-teal-950: #162122;
 
   /* ============================
-     Space Indigo — deep, premium atmospheric indigo
+     Blue Slate — Warm Gray (#8B8D91) neutral, grounding gray-blue
      ============================ */
-  --color-space-indigo-50: #ededf8;
-  --color-space-indigo-100: #dbdaf1;
-  --color-space-indigo-200: #b7b5e3;
-  --color-space-indigo-300: #9290d5;
-  --color-space-indigo-400: #6e6bc7;
-  --color-space-indigo-500: #4a46b9;
-  --color-space-indigo-600: #3b3894;
-  --color-space-indigo-700: #2c2a6f;
-  --color-space-indigo-800: #1e1c4a;
-  --color-space-indigo-900: #0f0e25;
-  --color-space-indigo-950: #0a0a1a;
+  --color-blue-slate-50: #f5f6f7;
+  --color-blue-slate-100: #dfe0e4;
+  --color-blue-slate-200: #c8cbd1;
+  --color-blue-slate-300: #b2b6bd;
+  --color-blue-slate-400: #9da1a9;
+  --color-blue-slate-500: #878c95;
+  --color-blue-slate-600: #6c7380;
+  --color-blue-slate-700: #545b69;
+  --color-blue-slate-800: #3d4350;
+  --color-blue-slate-900: #272c36;
+  --color-blue-slate-950: #13161b;
+
+  /* ============================
+     Space Indigo — Blueprint Indigo (#3D56AC), deep premium atmosphere
+     ============================ */
+  --color-space-indigo-50: #f4f5f8;
+  --color-space-indigo-100: #d3d7e5;
+  --color-space-indigo-200: #afb9d5;
+  --color-space-indigo-300: #8999c8;
+  --color-space-indigo-400: #5f78be;
+  --color-space-indigo-500: #3d5cac;
+  --color-space-indigo-600: #374f8d;
+  --color-space-indigo-700: #2f426f;
+  --color-space-indigo-800: #263453;
+  --color-space-indigo-900: #1c2438;
+  --color-space-indigo-950: #10151e;
 }
 
 /* =====================================

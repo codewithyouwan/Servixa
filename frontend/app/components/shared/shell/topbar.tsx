@@ -7,6 +7,7 @@ import type { AppNotification, User } from "@/lib/types";
 import { ROUTES } from "@/lib/constants/routes";
 import { ThemeToggle } from "@/app/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/app/components/shared/logo";
 import type { ShellConfig } from "./nav";
 import { NotificationsPopover } from "./notifications-popover";
 import { UserMenu } from "./user-menu";
@@ -25,9 +26,10 @@ export function Topbar({ config, user, notifications }: TopbarProps) {
       {/* Brand shown on mobile where the sidebar is hidden */}
       <Link
         href={ROUTES.home}
-        className="text-base font-semibold tracking-tight lg:hidden"
+        className="rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:hidden"
+        aria-label="BestBuild home"
       >
-        Best<span className="text-primary">Build</span>
+        <Logo markSize={24} wordmarkClassName="text-base" />
       </Link>
       <div className="hidden lg:block" />
 
