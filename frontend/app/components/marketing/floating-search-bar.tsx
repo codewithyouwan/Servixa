@@ -15,11 +15,19 @@ import {
  * stays visible while browsing the homepage. Requires a ZIP (defaulted
  * from the user's saved profile ZIP) before submitting.
  */
+// Kept short on purpose — the bar's input only ever gets ~250-400px of
+// room next to the ZIP chip and submit button, and a native <input>
+// placeholder clips silently rather than wrapping. One short example
+// that reliably fits beats a longer one that gets cut off.
+const PLACEHOLDER_FULL = "Try “Find a plumber near me”";
+const PLACEHOLDER_COMPACT = "Find a plumber near me";
+
 export function FloatingSearchBar() {
   const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState("");
   const [zip, setZip] = useState("");
   const [zipError, setZipError] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,6 +41,17 @@ export function FloatingSearchBar() {
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 480px)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration-safe media query read
+    setIsCompact(mql.matches);
+    function onChange(event: MediaQueryListEvent) {
+      setIsCompact(event.matches);
+    }
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
   }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -67,11 +86,11 @@ export function FloatingSearchBar() {
         <form
           role="search"
           onSubmit={handleSubmit}
-          className={`flex w-full items-center gap-2 rounded-2xl border bg-card/80 p-2 shadow-xl shadow-blue-slate-300/40 backdrop-blur-xl transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40 dark:shadow-black/50 ${
+          className={`flex w-full items-center gap-1.5 rounded-2xl border bg-card/80 p-1.5 shadow-xl shadow-blue-slate-300/40 backdrop-blur-xl transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40 sm:gap-2 sm:p-2 dark:shadow-black/50 ${
             zipError ? "border-destructive" : "border-border/60"
           }`}
         >
-          <span className="ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <span className="ml-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:flex">
             <Sparkles aria-hidden="true" className="h-4 w-4" />
           </span>
           <ZipSelector
@@ -94,12 +113,10 @@ export function FloatingSearchBar() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={
-              visible
-                ? "Try “I need to renovate my kitchen” or “Find a plumber near Dallas”"
-                : ""
+              visible ? (isCompact ? PLACEHOLDER_COMPACT : PLACEHOLDER_FULL) : ""
             }
             tabIndex={visible ? 0 : -1}
-            className="h-10 flex-1 border-0 bg-transparent px-1 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            className="h-10 min-w-0 flex-1 border-0 bg-transparent px-1 text-sm text-foreground outline-none placeholder:text-muted-foreground placeholder:truncate"
           />
           <button
             type="submit"

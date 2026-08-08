@@ -240,7 +240,7 @@ export function ZipSelector({
         )}
       >
         <MapPin aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" />
-        <span className="max-w-20 truncate tabular-nums">
+        <span className="max-w-12 truncate tabular-nums sm:max-w-20">
           {value || "ZIP"}
         </span>
       </button>
