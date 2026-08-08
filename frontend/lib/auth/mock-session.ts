@@ -34,9 +34,26 @@ export const MOCK_PROVIDER: User = {
   createdAt: "2026-03-02T14:00:00Z",
 };
 
+export const MOCK_BRAND: User = {
+  id: "0198c5f2-0000-7000-8000-b4a2d0c1e3f7",
+  name: "Priya Shah",
+  email: "priya.shah@carrierhomecomfort.example.com",
+  role: "brand",
+  avatarUrl: null,
+  address: {
+    line1: "1 Carrier Pkwy",
+    city: "Syracuse",
+    state: "NY",
+    postalCode: "13221",
+    country: "US",
+  },
+  createdAt: "2023-11-01T09:30:00Z",
+};
+
 const MOCK_USERS: Partial<Record<UserRole, User>> = {
   homeowner: MOCK_HOMEOWNER,
   service_provider: MOCK_PROVIDER,
+  brand: MOCK_BRAND,
 };
 
 /**

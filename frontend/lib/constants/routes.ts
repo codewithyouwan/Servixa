@@ -10,6 +10,7 @@ export const ROUTES = {
   quotes: "/pages/dashboard/quotes",
   messages: "/pages/dashboard/messages",
   providers: "/pages/dashboard/providers",
+  digitalTwin: "/pages/dashboard/digital-twin",
   assistant: "/pages/dashboard/assistant",
   settings: "/pages/dashboard/settings",
 } as const;

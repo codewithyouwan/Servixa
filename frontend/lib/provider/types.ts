@@ -1,123 +1,143 @@
-/**
- * Service-provider (CRM) module domain types.
- * Shared enums (QuoteStatus, ServiceCategorySlug…) come from lib/types/domain.
- * These mirror backend/app/service_provider/schemas.
+/** Contractor CRM types — mirror backend/app/service_provider/schemas/crm.py.
+ * Customers and Orders are derived (not stored); see crm-service.ts /
+ * backend/app/service_provider/services/crm_service.py for how.
  */
 
-import type {
-  ActivityItem,
-  AppNotification,
-  QuoteStatus,
-  ServiceCategorySlug,
-} from "@/lib/types";
-
-/** Mini-CRM pipeline stages (spec: lead pipeline + accept/decline + status tracking). */
-export type LeadStage = "new" | "contacted" | "quoted" | "won" | "lost";
+export type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
+export type CrmQuoteStatus = "draft" | "sent" | "accepted" | "declined" | "expired";
+export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue";
+export type OrderStatus = "scheduled" | "in_progress" | "completed";
 
 export interface Lead {
   id: string;
+  customerName: string;
+  customerEmail: string | null;
   projectTitle: string;
-  category: ServiceCategorySlug;
-  description: string;
-  homeownerName: string;
-  location: string;
-  budgetMin: number;
-  budgetMax: number;
-  stage: LeadStage;
-  /** 0–100 compatibility from the matching engine. */
+  category: string;
+  estimatedValue: number | null;
+  source: string;
+  status: LeadStatus;
   matchScore: number;
-  receivedAt: string;
-  /**
-   * Added during implementation (documented in product-spec):
-   * respond-by deadline driving the response-SLA indicator.
-   * Only set while stage === "new".
-   */
-  respondBy: string | null;
-}
-
-export interface ProviderQuote {
-  id: string;
-  leadId: string;
-  projectTitle: string;
-  homeownerName: string;
-  amount: number;
-  timeline: string;
-  status: QuoteStatus;
-  submittedAt: string;
-}
-
-export interface ProviderJob {
-  id: string;
-  title: string;
-  homeownerName: string;
-  location: string;
-  /** 0–100. */
-  progress: number;
-  milestonesDone: number;
-  milestonesTotal: number;
-  dueDate: string;
-}
-
-export interface Review {
-  id: string;
-  homeownerName: string;
-  projectTitle: string;
-  rating: number; // 1–5
-  text: string;
+  matchReason: string;
   createdAt: string;
 }
 
-export interface Reminder {
+export interface QuoteLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+/** Distinct from the homeowner's `Quote` (lib/homeowner/types/quote.ts),
+ * which is the homeowner's view of a quote received on their project. This
+ * is the contractor's own outgoing quote — different shape (line items,
+ * customer, lead), same underlying idea from the other side of the
+ * marketplace. */
+export interface CrmQuote {
   id: string;
   leadId: string | null;
-  text: string;
-  dueAt: string;
-  done: boolean;
+  customerName: string;
+  title: string;
+  lineItems: QuoteLineItem[];
+  amount: number;
+  status: CrmQuoteStatus;
+  aiGenerated: boolean;
+  scheduledDate: string | null;
+  completedDate: string | null;
+  createdAt: string;
+  sentAt: string | null;
+  respondedAt: string | null;
 }
 
-export type VerificationStatus = "verified" | "pending" | "missing" | "rejected";
-
-export interface VerificationItem {
-  key: "business_profile" | "license" | "insurance" | "kyc";
-  label: string;
-  status: VerificationStatus;
+export interface CrmQuoteCreate {
+  leadId?: string | null;
+  customerName: string;
+  title: string;
+  lineItems: QuoteLineItem[];
+  aiGenerated?: boolean;
 }
 
-/** Trust indicators (spec §5) + win rate (added during implementation). */
-export interface TrustStats {
-  trustScore: number; // 0–100
-  responseRate: number; // 0–100 (%)
-  completionRate: number; // 0–100 (%)
-  avgRating: number; // 1–5
-  reviewsCount: number;
-  quoteWinRate: number; // 0–100 (%)
-  avgResponseTime: string; // human readable
+export interface AiQuoteDraft {
+  title: string;
+  lineItems: QuoteLineItem[];
+  amount: number;
 }
 
-/** One point of the 8-week lead/quote trend mini-chart. */
-export interface LeadTrendPoint {
-  weekLabel: string;
-  leads: number;
-  quotes: number;
+/** An accepted quote with scheduling info — not a separate table/list. */
+export interface Order {
+  id: string;
+  quoteId: string;
+  customerName: string;
+  title: string;
+  amount: number;
+  status: OrderStatus;
+  scheduledDate: string | null;
+  completedDate: string | null;
 }
 
-export interface ProviderSummary {
-  newLeads: number;
-  pendingQuotes: number;
-  activeJobs: number;
-  unreadMessages: number;
+export interface Invoice {
+  id: string;
+  quoteId: string;
+  customerName: string;
+  amount: number;
+  status: InvoiceStatus;
+  dueDate: string | null;
+  paidAt: string | null;
+  createdAt: string;
 }
 
-export interface ProviderDashboard {
-  summary: ProviderSummary;
-  trust: TrustStats;
-  incomingLeads: Lead[];
-  recentQuotes: ProviderQuote[];
-  activeJobs: ProviderJob[];
-  reminders: Reminder[];
-  verification: VerificationItem[];
-  reviews: Review[];
-  leadTrend: LeadTrendPoint[];
-  notifications: AppNotification[];
-  recentActivity: ActivityItem[];
+/** Derived — distinct customers across this contractor's leads/quotes. */
+export interface Customer {
+  id: string;
+  name: string;
+  email: string | null;
+  totalJobs: number;
+  totalSpent: number;
+  lastActivityAt: string;
+}
+
+export interface CrmDashboardSummary {
+  openLeads: number;
+  quotesSent: number;
+  pipelineValue: number;
+  revenueThisMonth: number;
+  winRate: number;
+}
+
+export interface CrmDashboard {
+  summary: CrmDashboardSummary;
+  recentLeads: Lead[];
+  recentQuotes: CrmQuote[];
+}
+
+export type CrmDocumentCategory = "license" | "insurance" | "contract" | "photo";
+
+/** Backed by the same `docs` table as HomeDocument — a contractor's
+ * business docs are still just a file owned by a user. Separate type only
+ * because the category set and a couple of fields differ. */
+export interface CrmDocument {
+  id: string;
+  category: CrmDocumentCategory;
+  title: string;
+  fileUrl: string | null;
+  fileType: string;
+  uploadedAt: string;
+  tags: string[];
+  notes: string | null;
+  issuer: string | null;
+  expiresAt: string | null;
+  linkedCustomer: string | null;
+  linkedQuoteId: string | null;
+}
+
+export interface CrmDocumentCreate {
+  category: CrmDocumentCategory;
+  title: string;
+  fileType?: string;
+  tags?: string[];
+  notes?: string | null;
+  issuer?: string | null;
+  expiresAt?: string | null;
+  linkedCustomer?: string | null;
+  linkedQuoteId?: string | null;
 }

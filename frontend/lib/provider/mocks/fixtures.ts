@@ -1,280 +1,404 @@
 /**
- * Provider-module mock fixtures. Consumed ONLY by lib/provider/mocks/handlers.ts —
- * components must never import from this file.
- *
- * Leads are kept in a mutable store so accept/decline mutations behave
- * like a real API during development.
+ * Mock CRM fixtures. Consumed ONLY by lib/api/mock-adapter.ts (via
+ * lib/provider/mocks/handlers.ts) — components must never import from
+ * this file. Mirrors backend/app/service_provider/services/mock_data.py +
+ * crm_service.py's derive logic (Orders/Customers/Dashboard are computed,
+ * not stored).
  */
 
 import type {
+  CrmDashboard,
+  CrmDocument,
+  CrmDocumentCreate,
+  CrmQuote,
+  CrmQuoteCreate,
+  Customer,
+  Invoice,
   Lead,
-  LeadTrendPoint,
-  ProviderDashboard,
-  ProviderJob,
-  ProviderQuote,
-  Reminder,
-  Review,
-  TrustStats,
-  VerificationItem,
+  Order,
 } from "@/lib/provider/types";
-import type { ActivityItem } from "@/lib/types";
-import { MOCK_NOTIFICATIONS } from "@/lib/mocks/notifications";
 
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
-const hoursAhead = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString();
 const daysAgo = (d: number) => hoursAgo(d * 24);
+const dateOnly = (iso: string) => iso.slice(0, 10);
 
-/** Mutable lead store — accept/decline mutate stages in place. */
+const OPEN_LEAD_STATUSES: Lead["status"][] = ["new", "contacted", "qualified"];
+const RESPONDED_QUOTE_STATUSES: CrmQuote["status"][] = ["sent", "accepted", "declined", "expired"];
+const PIPELINE_QUOTE_STATUSES: CrmQuote["status"][] = ["sent", "accepted"];
+
 export const MOCK_LEADS: Lead[] = [
   {
-    id: "l-01",
-    projectTitle: "Roof Replacement — 2,400 sq ft",
+    id: "lead-001",
+    customerName: "Sarah Mitchell",
+    customerEmail: "sarah.mitchell@example.com",
+    projectTitle: "Gutter Guard Installation",
     category: "roofing",
-    description: "Replace asphalt shingle roof, underlayment inspection included.",
-    homeownerName: "Sarah Mitchell",
-    location: "Austin, TX 78704",
-    budgetMin: 12000,
-    budgetMax: 18000,
-    stage: "new",
-    matchScore: 94,
-    receivedAt: hoursAgo(3),
-    respondBy: hoursAhead(21),
+    estimatedValue: 3200,
+    source: "AI Match",
+    status: "converted",
+    matchScore: 96,
+    matchReason: "Homeowner has an active roof warranty with your company",
+    createdAt: daysAgo(15),
   },
   {
-    id: "l-02",
-    projectTitle: "Storm Damage Repair",
+    id: "lead-002",
+    customerName: "Jordan Blake",
+    customerEmail: "jordan.blake@example.com",
+    projectTitle: "New Roof Install — 1,800 sqft",
     category: "roofing",
-    description: "Hail damage on south-facing slope; insurance claim in progress.",
-    homeownerName: "James Okafor",
-    location: "Round Rock, TX 78665",
-    budgetMin: 4000,
-    budgetMax: 7000,
-    stage: "new",
+    estimatedValue: 11500,
+    source: "Website inquiry",
+    status: "new",
     matchScore: 88,
-    receivedAt: hoursAgo(9),
-    respondBy: hoursAhead(15),
+    matchReason: "Budget and timeline match your typical roofing jobs",
+    createdAt: daysAgo(2),
   },
   {
-    id: "l-03",
-    projectTitle: "Flat Roof Coating — Small Office",
+    id: "lead-003",
+    customerName: "Priya Nair",
+    customerEmail: "priya.nair@example.com",
+    projectTitle: "Storm Damage Roof Repair",
     category: "roofing",
-    description: "Silicone coating over existing modified bitumen, ~3,000 sq ft.",
-    homeownerName: "Dana Whitfield",
-    location: "Austin, TX 78745",
-    budgetMin: 6000,
-    budgetMax: 9000,
-    stage: "contacted",
-    matchScore: 81,
-    receivedAt: daysAgo(2),
-    respondBy: null,
+    estimatedValue: 4800,
+    source: "Referral",
+    status: "contacted",
+    matchScore: 91,
+    matchReason: "Urgent repair matches your fast-response profile",
+    createdAt: daysAgo(5),
   },
   {
-    id: "l-04",
-    projectTitle: "Gutter Replacement + Guards",
+    id: "lead-004",
+    customerName: "Devon Carter",
+    customerEmail: "devon.carter@example.com",
+    projectTitle: "Annual Roof Inspection",
     category: "roofing",
-    description: "Seamless aluminum gutters, leaf guards, 180 linear ft.",
-    homeownerName: "Priya Raman",
-    location: "Cedar Park, TX 78613",
-    budgetMin: 2500,
-    budgetMax: 4000,
-    stage: "quoted",
-    matchScore: 90,
-    receivedAt: daysAgo(4),
-    respondBy: null,
+    estimatedValue: 350,
+    source: "AI Match",
+    status: "qualified",
+    matchScore: 79,
+    matchReason: "Existing customer due for scheduled maintenance",
+    createdAt: daysAgo(1),
   },
   {
-    id: "l-05",
-    projectTitle: "Skylight Install (2x)",
+    id: "lead-005",
+    customerName: "Elena Ruiz",
+    customerEmail: "elena.ruiz@example.com",
+    projectTitle: "Full Re-roof — Metal Upgrade",
     category: "roofing",
-    description: "Two fixed skylights on a low-slope composition roof.",
-    homeownerName: "Tom Becker",
-    location: "Austin, TX 78723",
-    budgetMin: 3000,
-    budgetMax: 5500,
-    stage: "won",
-    matchScore: 86,
-    receivedAt: daysAgo(9),
-    respondBy: null,
-  },
-  {
-    id: "l-06",
-    projectTitle: "Full Tear-Off + Metal Roof",
-    category: "roofing",
-    description: "Standing seam metal roof on a 1970s ranch home.",
-    homeownerName: "Elena Vasquez",
-    location: "Buda, TX 78610",
-    budgetMin: 22000,
-    budgetMax: 30000,
-    stage: "lost",
-    matchScore: 77,
-    receivedAt: daysAgo(12),
-    respondBy: null,
+    estimatedValue: 22000,
+    source: "Website inquiry",
+    status: "lost",
+    matchScore: 84,
+    matchReason: "High-value project matching premium material specialization",
+    createdAt: daysAgo(30),
   },
 ];
 
-export const MOCK_PROVIDER_QUOTES: ProviderQuote[] = [
+export const MOCK_CRM_QUOTES: CrmQuote[] = [
   {
-    id: "pq-01",
-    leadId: "l-04",
-    projectTitle: "Gutter Replacement + Guards",
-    homeownerName: "Priya Raman",
-    amount: 3400,
-    timeline: "2–3 days",
-    status: "pending",
-    submittedAt: daysAgo(1),
-  },
-  {
-    id: "pq-02",
-    leadId: "l-05",
-    projectTitle: "Skylight Install (2x)",
-    homeownerName: "Tom Becker",
-    amount: 4800,
-    timeline: "1 week",
+    id: "quote-001",
+    leadId: "lead-001",
+    customerName: "Sarah Mitchell",
+    title: "Gutter Guard Installation",
+    lineItems: [
+      { description: "Aluminum gutter guards — 180 linear ft", quantity: 180, unitPrice: 18 },
+      { description: "Installation labor", quantity: 1, unitPrice: 600 },
+    ],
+    amount: 3840,
     status: "accepted",
-    submittedAt: daysAgo(7),
+    aiGenerated: true,
+    scheduledDate: dateOnly(daysAgo(-10)),
+    completedDate: null,
+    createdAt: daysAgo(14),
+    sentAt: daysAgo(14),
+    respondedAt: daysAgo(12),
   },
   {
-    id: "pq-03",
-    leadId: "l-06",
-    projectTitle: "Full Tear-Off + Metal Roof",
-    homeownerName: "Elena Vasquez",
-    amount: 27500,
-    timeline: "3 weeks",
-    status: "declined",
-    submittedAt: daysAgo(10),
-  },
-];
-
-export const MOCK_JOBS: ProviderJob[] = [
-  {
-    id: "j-01",
-    title: "Skylight Install (2x)",
-    homeownerName: "Tom Becker",
-    location: "Austin, TX 78723",
-    progress: 60,
-    milestonesDone: 3,
-    milestonesTotal: 5,
-    dueDate: hoursAhead(24 * 6),
-  },
-  {
-    id: "j-02",
-    title: "Shingle Repair — Back Porch",
-    homeownerName: "Alicia Grant",
-    location: "Austin, TX 78702",
-    progress: 20,
-    milestonesDone: 1,
-    milestonesTotal: 4,
-    dueDate: hoursAhead(24 * 12),
-  },
-];
-
-export const MOCK_REVIEWS: Review[] = [
-  {
-    id: "r-01",
-    homeownerName: "Tom Becker",
-    projectTitle: "Skylight Install (2x)",
-    rating: 5,
-    text: "Fast, clean, and the crew walked me through everything. Roof looks great.",
+    id: "quote-002",
+    leadId: "lead-003",
+    customerName: "Priya Nair",
+    title: "Storm Damage Roof Repair — Estimate",
+    lineItems: [
+      { description: "Shingle replacement — 12 squares", quantity: 12, unitPrice: 340 },
+      { description: "Flashing repair", quantity: 1, unitPrice: 870 },
+    ],
+    amount: 4950,
+    status: "sent",
+    aiGenerated: true,
+    scheduledDate: null,
+    completedDate: null,
     createdAt: daysAgo(3),
+    sentAt: daysAgo(3),
+    respondedAt: null,
   },
   {
-    id: "r-02",
-    homeownerName: "Alicia Grant",
-    projectTitle: "Emergency Leak Repair",
-    rating: 5,
-    text: "Came out same-day after the storm. Honest pricing, no upsell.",
-    createdAt: daysAgo(11),
+    id: "quote-003",
+    leadId: null,
+    customerName: "Nathan Cole",
+    title: "Chimney Flashing Repair",
+    lineItems: [{ description: "Flashing materials + labor", quantity: 1, unitPrice: 1200 }],
+    amount: 1200,
+    status: "accepted",
+    aiGenerated: false,
+    scheduledDate: dateOnly(daysAgo(20)),
+    completedDate: dateOnly(daysAgo(18)),
+    createdAt: daysAgo(22),
+    sentAt: daysAgo(22),
+    respondedAt: daysAgo(21),
   },
   {
-    id: "r-03",
-    homeownerName: "Marcus Lee",
-    projectTitle: "Ridge Vent Installation",
-    rating: 4,
-    text: "Solid work. Scheduling slipped a day but communication was clear.",
+    id: "quote-004",
+    leadId: null,
+    customerName: "Nathan Cole",
+    title: "Spring Gutter Cleaning",
+    lineItems: [{ description: "Gutter cleaning — full perimeter", quantity: 1, unitPrice: 280 }],
+    amount: 280,
+    status: "accepted",
+    aiGenerated: false,
+    scheduledDate: dateOnly(daysAgo(-5)),
+    completedDate: null,
+    createdAt: daysAgo(4),
+    sentAt: daysAgo(4),
+    respondedAt: daysAgo(3),
+  },
+];
+
+export const MOCK_INVOICES: Invoice[] = [
+  {
+    id: "invoice-001",
+    quoteId: "quote-003",
+    customerName: "Nathan Cole",
+    amount: 1200,
+    status: "paid",
+    dueDate: dateOnly(daysAgo(25)),
+    paidAt: daysAgo(5),
     createdAt: daysAgo(20),
   },
-];
-
-export const MOCK_REMINDERS: Reminder[] = [
   {
-    id: "rem-01",
-    leadId: "l-03",
-    text: "Follow up with Dana Whitfield — send coating spec sheet",
-    dueAt: hoursAhead(4),
-    done: false,
+    id: "invoice-002",
+    quoteId: "quote-001",
+    customerName: "Sarah Mitchell",
+    amount: 3840,
+    status: "sent",
+    dueDate: dateOnly(daysAgo(-15)),
+    paidAt: null,
+    createdAt: daysAgo(1),
   },
   {
-    id: "rem-02",
-    leadId: "l-04",
-    text: "Check if Priya Raman reviewed the gutter quote",
-    dueAt: hoursAgo(2),
-    done: false,
-  },
-  {
-    id: "rem-03",
-    leadId: null,
-    text: "Renew liability insurance certificate (expires this month)",
-    dueAt: hoursAhead(24 * 5),
-    done: false,
+    id: "invoice-003",
+    quoteId: "quote-004",
+    customerName: "Nathan Cole",
+    amount: 280,
+    status: "draft",
+    dueDate: null,
+    paidAt: null,
+    createdAt: hoursAgo(2),
   },
 ];
 
-export const MOCK_VERIFICATION: VerificationItem[] = [
-  { key: "business_profile", label: "Business profile", status: "verified" },
-  { key: "license", label: "Contractor license", status: "verified" },
-  { key: "insurance", label: "Liability insurance", status: "pending" },
-  { key: "kyc", label: "Identity verification (KYC)", status: "missing" },
+export const MOCK_CRM_DOCUMENTS: CrmDocument[] = [
+  {
+    id: "crmdoc-001",
+    category: "insurance",
+    title: "General Liability Insurance",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(300),
+    tags: ["compliance"],
+    notes: null,
+    issuer: "Texas Farm Bureau Insurance",
+    expiresAt: daysAgo(-20),
+    linkedCustomer: null,
+    linkedQuoteId: null,
+  },
+  {
+    id: "crmdoc-002",
+    category: "license",
+    title: "TX Residential Roofing Contractor License",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(500),
+    tags: ["compliance"],
+    notes: null,
+    issuer: "Texas Department of Licensing and Regulation",
+    expiresAt: daysAgo(-200),
+    linkedCustomer: null,
+    linkedQuoteId: null,
+  },
+  {
+    id: "crmdoc-003",
+    category: "contract",
+    title: "Signed Work Agreement — Gutter Guard Installation",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(13),
+    tags: ["signed"],
+    notes: null,
+    issuer: null,
+    expiresAt: null,
+    linkedCustomer: "Sarah Mitchell",
+    linkedQuoteId: "quote-001",
+  },
+  {
+    id: "crmdoc-004",
+    category: "photo",
+    title: "Chimney Flashing — Before Repair",
+    fileUrl: null,
+    fileType: "jpg",
+    uploadedAt: daysAgo(22),
+    tags: ["job-site"],
+    notes: null,
+    issuer: null,
+    expiresAt: null,
+    linkedCustomer: "Nathan Cole",
+    linkedQuoteId: "quote-003",
+  },
 ];
 
-export const MOCK_TRUST: TrustStats = {
-  trustScore: 91,
-  responseRate: 96,
-  completionRate: 98,
-  avgRating: 4.8,
-  reviewsCount: 47,
-  quoteWinRate: 38,
-  avgResponseTime: "~2 hrs",
-};
+export function deriveOrders(): Order[] {
+  const orders: Order[] = [];
+  for (const q of MOCK_CRM_QUOTES) {
+    if (q.status !== "accepted") continue;
+    const status: Order["status"] = q.completedDate
+      ? "completed"
+      : q.scheduledDate
+        ? "scheduled"
+        : "in_progress";
+    orders.push({
+      id: `order-${q.id}`,
+      quoteId: q.id,
+      customerName: q.customerName,
+      title: q.title,
+      amount: q.amount,
+      status,
+      scheduledDate: q.scheduledDate,
+      completedDate: q.completedDate,
+    });
+  }
+  return orders.sort((a, b) => (b.scheduledDate ?? "").localeCompare(a.scheduledDate ?? ""));
+}
 
-export const MOCK_LEAD_TREND: LeadTrendPoint[] = [
-  { weekLabel: "Jun 8", leads: 4, quotes: 2 },
-  { weekLabel: "Jun 15", leads: 6, quotes: 3 },
-  { weekLabel: "Jun 22", leads: 5, quotes: 4 },
-  { weekLabel: "Jun 29", leads: 8, quotes: 5 },
-  { weekLabel: "Jul 6", leads: 7, quotes: 4 },
-  { weekLabel: "Jul 13", leads: 9, quotes: 6 },
-  { weekLabel: "Jul 20", leads: 11, quotes: 7 },
-  { weekLabel: "Jul 27", leads: 8, quotes: 5 },
-];
+export function deriveCustomers(): Customer[] {
+  const names = new Map<
+    string,
+    { email: string | null; activity: string[]; spent: number; jobs: number }
+  >();
 
-export const MOCK_PROVIDER_ACTIVITY: ActivityItem[] = [
-  { id: "pa-01", kind: "provider_matched", text: "New lead: Roof Replacement in 78704 (94% match)", createdAt: hoursAgo(3) },
-  { id: "pa-02", kind: "message", text: "Dana Whitfield replied about the flat roof coating", createdAt: hoursAgo(6) },
-  { id: "pa-03", kind: "quote_accepted", text: "Tom Becker accepted your skylight quote", createdAt: daysAgo(7) },
-  { id: "pa-04", kind: "milestone_completed", text: "Milestone complete: flashing installed (Skylight Install)", createdAt: daysAgo(1) },
-  { id: "pa-05", kind: "quote_received", text: "You submitted a quote for Gutter Replacement", createdAt: daysAgo(1) },
-];
+  for (const lead of MOCK_LEADS) {
+    const entry = names.get(lead.customerName) ?? {
+      email: lead.customerEmail,
+      activity: [],
+      spent: 0,
+      jobs: 0,
+    };
+    entry.activity.push(lead.createdAt);
+    names.set(lead.customerName, entry);
+  }
 
-export function buildProviderDashboard(): ProviderDashboard {
-  const newLeads = MOCK_LEADS.filter((l) => l.stage === "new");
+  for (const q of MOCK_CRM_QUOTES) {
+    const entry = names.get(q.customerName) ?? { email: null, activity: [], spent: 0, jobs: 0 };
+    entry.activity.push(q.createdAt);
+    if (q.status === "accepted") entry.jobs += 1;
+    names.set(q.customerName, entry);
+  }
+
+  for (const inv of MOCK_INVOICES) {
+    const entry = names.get(inv.customerName);
+    if (entry && inv.status === "paid") entry.spent += inv.amount;
+  }
+
+  return [...names.entries()]
+    .sort((a, b) => Math.max(...b[1].activity.map(Date.parse)) - Math.max(...a[1].activity.map(Date.parse)))
+    .map(([name, data]) => ({
+      id: `cust-${name.toLowerCase().replace(/\s+/g, "-")}`,
+      name,
+      email: data.email,
+      totalJobs: data.jobs,
+      totalSpent: data.spent,
+      lastActivityAt: data.activity.sort().at(-1) ?? "",
+    }));
+}
+
+export function buildMockDashboard(): CrmDashboard {
+  const openLeads = MOCK_LEADS.filter((l) => OPEN_LEAD_STATUSES.includes(l.status));
+  const responded = MOCK_CRM_QUOTES.filter((q) => RESPONDED_QUOTE_STATUSES.includes(q.status));
+  const accepted = MOCK_CRM_QUOTES.filter((q) => q.status === "accepted");
+  const pipeline = MOCK_CRM_QUOTES.filter((q) => PIPELINE_QUOTE_STATUSES.includes(q.status));
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const revenueThisMonth = MOCK_INVOICES.filter(
+    (i) => i.status === "paid" && i.paidAt && i.paidAt.slice(0, 7) === thisMonth,
+  ).reduce((sum, i) => sum + i.amount, 0);
+
   return {
     summary: {
-      newLeads: newLeads.length,
-      pendingQuotes: MOCK_PROVIDER_QUOTES.filter((q) => q.status === "pending").length,
-      activeJobs: MOCK_JOBS.length,
-      unreadMessages: 3,
+      openLeads: openLeads.length,
+      quotesSent: responded.length,
+      pipelineValue: pipeline.reduce((sum, q) => sum + q.amount, 0),
+      revenueThisMonth,
+      winRate: responded.length ? Math.round((accepted.length / responded.length) * 100) : 0,
     },
-    trust: MOCK_TRUST,
-    incomingLeads: newLeads,
-    recentQuotes: [...MOCK_PROVIDER_QUOTES].sort((a, b) =>
-      b.submittedAt.localeCompare(a.submittedAt),
-    ),
-    activeJobs: MOCK_JOBS,
-    reminders: MOCK_REMINDERS.filter((r) => !r.done),
-    verification: MOCK_VERIFICATION,
-    reviews: MOCK_REVIEWS,
-    leadTrend: MOCK_LEAD_TREND,
-    notifications: MOCK_NOTIFICATIONS,
-    recentActivity: MOCK_PROVIDER_ACTIVITY,
+    recentLeads: [...MOCK_LEADS].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5),
+    recentQuotes: [...MOCK_CRM_QUOTES]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 5),
   };
+}
+
+let quoteIdCounter = 1;
+export function addMockQuote(body: CrmQuoteCreate): CrmQuote {
+  const amount = body.lineItems.reduce((sum, i) => sum + Math.round(i.quantity * i.unitPrice), 0);
+  const now = new Date().toISOString();
+  const quote: CrmQuote = {
+    id: `quote-${String(quoteIdCounter++).padStart(3, "0")}-new`,
+    leadId: body.leadId ?? null,
+    customerName: body.customerName,
+    title: body.title,
+    lineItems: body.lineItems,
+    amount,
+    status: "sent",
+    aiGenerated: body.aiGenerated ?? false,
+    scheduledDate: null,
+    completedDate: null,
+    createdAt: now,
+    sentAt: now,
+    respondedAt: null,
+  };
+  MOCK_CRM_QUOTES.unshift(quote);
+  if (body.leadId) {
+    const lead = MOCK_LEADS.find((l) => l.id === body.leadId);
+    if (lead) lead.status = "converted";
+  }
+  return quote;
+}
+
+export function generateAiQuoteDraft(leadId: string) {
+  const lead = MOCK_LEADS.find((l) => l.id === leadId);
+  if (!lead) return undefined;
+  const base = lead.estimatedValue ?? 1000;
+  const lineItems = [
+    { description: `Materials — ${lead.projectTitle}`, quantity: 1, unitPrice: Math.round(base * 0.65) },
+    { description: "Labor", quantity: 1, unitPrice: Math.round(base * 0.3) },
+    { description: "Permits & disposal", quantity: 1, unitPrice: Math.round(base * 0.05) },
+  ];
+  const amount = lineItems.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+  return { title: lead.projectTitle, lineItems, amount: Math.round(amount) };
+}
+
+export function addMockDocument(body: CrmDocumentCreate): CrmDocument {
+  const doc: CrmDocument = {
+    id: `crmdoc-${String(MOCK_CRM_DOCUMENTS.length + 1).padStart(3, "0")}-new`,
+    category: body.category,
+    title: body.title,
+    fileUrl: null,
+    fileType: body.fileType ?? "pdf",
+    uploadedAt: new Date().toISOString(),
+    tags: body.tags ?? [],
+    notes: body.notes ?? null,
+    issuer: body.issuer ?? null,
+    expiresAt: body.expiresAt ?? null,
+    linkedCustomer: body.linkedCustomer ?? null,
+    linkedQuoteId: body.linkedQuoteId ?? null,
+  };
+  MOCK_CRM_DOCUMENTS.unshift(doc);
+  return doc;
 }

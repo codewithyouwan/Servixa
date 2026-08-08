@@ -1,109 +1,149 @@
-"""Service-provider CRM schemas — mirror frontend/lib/provider/types.ts."""
+"""Service-provider CRM schemas — mirror frontend/lib/provider/types.ts.
+
+One file for the whole module (Leads/Customers/Quotes/Orders/Invoices/
+Documents + Dashboard), same convention as app/homeowner/schemas/dashboard.py
+bundling the homeowner dashboard's shapes.
+"""
 
 from typing import Literal
 
-from app.shared.schemas.notification import ActivityOut, NotificationOut
 from app.shared.schemas.user import CamelModel
 
-LeadStage = Literal["new", "contacted", "quoted", "won", "lost"]
-QuoteStatus = Literal["pending", "received", "accepted", "declined", "expired"]
-VerificationStatus = Literal["verified", "pending", "missing", "rejected"]
+LeadStatus = Literal["new", "contacted", "qualified", "converted", "lost"]
+CrmQuoteStatus = Literal["draft", "sent", "accepted", "declined", "expired"]
+InvoiceStatus = Literal["draft", "sent", "paid", "overdue"]
+CrmDocumentCategory = Literal["license", "insurance", "contract", "photo"]
 
 
 class LeadOut(CamelModel):
     id: str
+    customer_name: str
+    customer_email: str | None = None
     project_title: str
     category: str
-    description: str
-    homeowner_name: str
-    location: str
-    budget_min: int
-    budget_max: int
-    stage: LeadStage
+    estimated_value: int | None = None
+    source: str
+    status: LeadStatus
     match_score: int
-    received_at: str
-    # Added during implementation: response-SLA deadline (see product spec).
-    respond_by: str | None = None
-
-
-class ProviderQuoteOut(CamelModel):
-    id: str
-    lead_id: str
-    project_title: str
-    homeowner_name: str
-    amount: int
-    timeline: str
-    status: QuoteStatus
-    submitted_at: str
-
-
-class ProviderJobOut(CamelModel):
-    id: str
-    title: str
-    homeowner_name: str
-    location: str
-    progress: int
-    milestones_done: int
-    milestones_total: int
-    due_date: str
-
-
-class ReviewOut(CamelModel):
-    id: str
-    homeowner_name: str
-    project_title: str
-    rating: int
-    text: str
+    match_reason: str
     created_at: str
 
 
-class ReminderOut(CamelModel):
+class QuoteLineItem(CamelModel):
+    description: str
+    quantity: float
+    unit_price: int
+
+
+class CrmQuoteOut(CamelModel):
     id: str
     lead_id: str | None = None
-    text: str
-    due_at: str
-    done: bool
+    customer_name: str
+    title: str
+    line_items: list[QuoteLineItem]
+    amount: int
+    status: CrmQuoteStatus
+    ai_generated: bool
+    scheduled_date: str | None = None
+    completed_date: str | None = None
+    created_at: str
+    sent_at: str | None = None
+    responded_at: str | None = None
 
 
-class VerificationItemOut(CamelModel):
-    key: Literal["business_profile", "license", "insurance", "kyc"]
-    label: str
-    status: VerificationStatus
+class CrmQuoteCreate(CamelModel):
+    lead_id: str | None = None
+    customer_name: str
+    title: str
+    line_items: list[QuoteLineItem]
+    ai_generated: bool = False
 
 
-class TrustStatsOut(CamelModel):
-    trust_score: int
-    response_rate: int
-    completion_rate: int
-    avg_rating: float
-    reviews_count: int
-    # Added during implementation: win rate surfaced to providers.
-    quote_win_rate: int
-    avg_response_time: str
+class AiQuoteDraftRequest(CamelModel):
+    lead_id: str
 
 
-class LeadTrendPointOut(CamelModel):
-    week_label: str
-    leads: int
-    quotes: int
+class AiQuoteDraftOut(CamelModel):
+    title: str
+    line_items: list[QuoteLineItem]
+    amount: int
 
 
-class ProviderSummaryOut(CamelModel):
-    new_leads: int
-    pending_quotes: int
-    active_jobs: int
-    unread_messages: int
+class OrderOut(CamelModel):
+    """An accepted quote with scheduling info — not a separate table."""
+
+    id: str
+    quote_id: str
+    customer_name: str
+    title: str
+    amount: int
+    status: Literal["scheduled", "in_progress", "completed"]
+    scheduled_date: str | None = None
+    completed_date: str | None = None
 
 
-class ProviderDashboardOut(CamelModel):
-    summary: ProviderSummaryOut
-    trust: TrustStatsOut
-    incoming_leads: list[LeadOut]
-    recent_quotes: list[ProviderQuoteOut]
-    active_jobs: list[ProviderJobOut]
-    reminders: list[ReminderOut]
-    verification: list[VerificationItemOut]
-    reviews: list[ReviewOut]
-    lead_trend: list[LeadTrendPointOut]
-    notifications: list[NotificationOut]
-    recent_activity: list[ActivityOut]
+class InvoiceOut(CamelModel):
+    id: str
+    quote_id: str
+    customer_name: str
+    amount: int
+    status: InvoiceStatus
+    due_date: str | None = None
+    paid_at: str | None = None
+    created_at: str
+
+
+class CustomerOut(CamelModel):
+    """Derived — distinct homeowners across this provider's leads/quotes,
+    not a stored table. See crm_service.list_customers()."""
+
+    id: str
+    name: str
+    email: str | None = None
+    total_jobs: int
+    total_spent: int
+    last_activity_at: str
+
+
+class CrmDashboardSummary(CamelModel):
+    open_leads: int
+    quotes_sent: int
+    pipeline_value: int
+    revenue_this_month: int
+    win_rate: int  # 0-100
+
+
+class CrmDashboardOut(CamelModel):
+    summary: CrmDashboardSummary
+    recent_leads: list[LeadOut]
+    recent_quotes: list[CrmQuoteOut]
+
+
+class CrmDocumentOut(CamelModel):
+    """Backed by the same `docs` table as the Homeowner Digital Twin — a
+    provider's business docs are still just a file owned by a user."""
+
+    id: str
+    category: CrmDocumentCategory
+    title: str
+    file_url: str | None = None
+    file_type: str
+    uploaded_at: str
+    tags: list[str] = []
+    notes: str | None = None
+    issuer: str | None = None
+    expires_at: str | None = None
+    linked_customer: str | None = None
+    linked_quote_id: str | None = None
+
+
+class CrmDocumentCreate(CamelModel):
+    category: CrmDocumentCategory
+    title: str
+    file_type: str = "pdf"
+    tags: list[str] = []
+    notes: str | None = None
+    issuer: str | None = None
+    expires_at: str | None = None
+    linked_customer: str | None = None
+    linked_quote_id: str | None = None

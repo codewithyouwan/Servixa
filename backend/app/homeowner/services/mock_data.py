@@ -6,9 +6,11 @@ read from PostgreSQL.
 
 from app.shared.mock_users import days_ago, hours_ago
 from app.shared.schemas.notification import ActivityOut
+from app.homeowner.schemas.document import DocumentOut
 from app.homeowner.schemas.project import ProjectOut
 from app.homeowner.schemas.provider import RecommendedProviderOut
 from app.homeowner.schemas.quote import QuoteOut
+from app.homeowner.schemas.service_record import ServiceRecordOut
 
 _hours_ago = hours_ago
 _days_ago = days_ago
@@ -170,4 +172,147 @@ MOCK_ACTIVITY: list[ActivityOut] = [
     ActivityOut(id="a-03", kind="milestone_completed", text="Cabinet installation marked complete", created_at=_hours_ago(9)),
     ActivityOut(id="a-04", kind="provider_matched", text="3 providers matched to Backyard Landscaping", created_at=_days_ago(1)),
     ActivityOut(id="a-05", kind="project_created", text="You posted Backyard Landscaping", created_at=_days_ago(2)),
+]
+
+# --- Home Digital Twin -----------------------------------------------------
+# One list, four categories — mirrors the `docs` table's single-table-plus-
+# metadata design (see backend/db/schema.sql).
+
+MOCK_DOCUMENTS: list[DocumentOut] = [
+    DocumentOut(
+        id="doc-001",
+        category="invoice",
+        title="Samsung French Door Refrigerator",
+        file_url=None,
+        file_type="pdf",
+        uploaded_at=_days_ago(210),
+        tags=["kitchen", "appliance"],
+        linked_appliance="Refrigerator",
+        vendor="Amazon.com",
+        amount=2149,
+        purchase_date=_days_ago(210),
+        order_number="112-4471963-2210649",
+    ),
+    DocumentOut(
+        id="doc-002",
+        category="invoice",
+        title="Roof Replacement — Final Invoice",
+        file_url=None,
+        file_type="pdf",
+        uploaded_at=_days_ago(60),
+        tags=["roof", "exterior"],
+        linked_appliance=None,
+        vendor="Hill Country Roofing Co.",
+        amount=14200,
+        purchase_date=_days_ago(60),
+        order_number=None,
+    ),
+    DocumentOut(
+        id="doc-003",
+        category="warranty",
+        title="Refrigerator — Manufacturer Warranty",
+        file_url=None,
+        file_type="pdf",
+        uploaded_at=_days_ago(210),
+        tags=["kitchen", "appliance"],
+        linked_appliance="Refrigerator",
+        brand="Samsung",
+        purchase_date=_days_ago(210),
+        expires_at=_days_ago(-155),
+    ),
+    DocumentOut(
+        id="doc-004",
+        category="warranty",
+        title="Roof — Workmanship Warranty",
+        file_url=None,
+        file_type="pdf",
+        uploaded_at=_days_ago(60),
+        tags=["roof", "exterior"],
+        linked_appliance=None,
+        brand="Hill Country Roofing Co.",
+        purchase_date=_days_ago(60),
+        expires_at=_days_ago(-3615),
+    ),
+    DocumentOut(
+        id="doc-005",
+        category="warranty",
+        title="HVAC System — Parts Warranty",
+        file_url=None,
+        file_type="pdf",
+        uploaded_at=_days_ago(320),
+        tags=["hvac"],
+        linked_appliance="HVAC System",
+        brand="Carrier",
+        purchase_date=_days_ago(320),
+        expires_at=_days_ago(-10),
+    ),
+    DocumentOut(
+        id="doc-006",
+        category="photo",
+        title="Kitchen — Before Renovation",
+        file_url=None,
+        file_type="jpg",
+        uploaded_at=_days_ago(21),
+        tags=["kitchen", "before"],
+        linked_appliance=None,
+    ),
+    DocumentOut(
+        id="doc-007",
+        category="photo",
+        title="Roof — Post-Install Inspection",
+        file_url=None,
+        file_type="jpg",
+        uploaded_at=_days_ago(58),
+        tags=["roof", "after"],
+        linked_appliance=None,
+    ),
+    DocumentOut(
+        id="doc-008",
+        category="manual",
+        title="Refrigerator — Owner's Manual",
+        file_url=None,
+        file_type="pdf",
+        uploaded_at=_days_ago(210),
+        tags=["kitchen", "appliance"],
+        linked_appliance="Refrigerator",
+        brand="Samsung",
+    ),
+    DocumentOut(
+        id="doc-009",
+        category="manual",
+        title="HVAC System — Installation & Service Guide",
+        file_url=None,
+        file_type="pdf",
+        uploaded_at=_days_ago(320),
+        tags=["hvac"],
+        linked_appliance="HVAC System",
+        brand="Carrier",
+    ),
+]
+
+MOCK_SERVICE_RECORDS: list[ServiceRecordOut] = [
+    ServiceRecordOut(
+        id="sr-001",
+        service_date=_days_ago(60),
+        contractor_name="Hill Country Roofing Co.",
+        work_performed="Full roof replacement — asphalt shingle, ~2,400 sq ft, underlayment inspected and replaced.",
+        cost=14200,
+        linked_document_id="doc-002",
+    ),
+    ServiceRecordOut(
+        id="sr-002",
+        service_date=_days_ago(150),
+        contractor_name="Austin HVAC Pros",
+        work_performed="Annual HVAC tune-up: filter replacement, coolant level check, thermostat calibration.",
+        cost=185,
+        linked_document_id=None,
+    ),
+    ServiceRecordOut(
+        id="sr-003",
+        service_date=_days_ago(210),
+        contractor_name=None,
+        work_performed="New refrigerator delivered and installed (self-install).",
+        cost=2149,
+        linked_document_id="doc-001",
+    ),
 ]

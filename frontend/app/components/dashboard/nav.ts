@@ -1,6 +1,7 @@
 import {
   Bot,
   FolderKanban,
+  FolderLock,
   LayoutDashboard,
   MessageSquare,
   ReceiptText,
@@ -21,6 +22,7 @@ export const HOMEOWNER_SHELL: ShellConfig = {
     { label: "Quotes", href: ROUTES.quotes, icon: ReceiptText },
     { label: "Messages", href: ROUTES.messages, icon: MessageSquare },
     { label: "Find Contractors", href: ROUTES.providers, icon: Search },
+    { label: "Home Digital Twin", href: ROUTES.digitalTwin, icon: FolderLock },
     { label: "AI Assistant", href: ROUTES.assistant, icon: Bot },
   ],
 };

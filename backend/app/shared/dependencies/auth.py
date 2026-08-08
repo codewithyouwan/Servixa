@@ -15,7 +15,7 @@ import json
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.shared.mock_users import MOCK_HOMEOWNER, MOCK_PROVIDER
+from app.shared.mock_users import MOCK_BRAND, MOCK_HOMEOWNER, MOCK_PROVIDER
 from app.shared.schemas.user import UserOut
 
 _bearer = HTTPBearer(auto_error=False)
@@ -42,7 +42,11 @@ def get_current_user(
         )
     # TODO(auth): validate JWT signature/expiry and load the user from the DB.
     role = _role_from_dev_token(credentials.credentials)
-    return MOCK_PROVIDER if role == "service_provider" else MOCK_HOMEOWNER
+    if role == "service_provider":
+        return MOCK_PROVIDER
+    if role == "brand":
+        return MOCK_BRAND
+    return MOCK_HOMEOWNER
 
 
 def require_homeowner(user: UserOut = Depends(get_current_user)) -> UserOut:
@@ -61,5 +65,14 @@ def require_provider(user: UserOut = Depends(get_current_user)) -> UserOut:
             detail={
                 "error": {"code": "FORBIDDEN", "message": "Service-provider role required"}
             },
+        )
+    return user
+
+
+def require_brand(user: UserOut = Depends(get_current_user)) -> UserOut:
+    if user.role != "brand":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": {"code": "FORBIDDEN", "message": "Brand role required"}},
         )
     return user

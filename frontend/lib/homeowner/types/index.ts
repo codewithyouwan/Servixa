@@ -4,3 +4,5 @@ export * from "./project";
 export * from "./quote";
 export * from "./provider";
 export * from "./dashboard";
+export * from "./document";
+export * from "./service-record";

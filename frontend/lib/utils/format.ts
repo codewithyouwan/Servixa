@@ -40,6 +40,10 @@ export function hoursUntil(iso: string): number {
   return Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 3_600_000));
 }
 
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 export function initials(name: string): string {
   return name
     .split(/\s+/)

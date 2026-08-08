@@ -54,6 +54,22 @@ MOCK_PROVIDER = UserOut(
     created_at="2026-03-02T14:00:00Z",
 )
 
+MOCK_BRAND = UserOut(
+    id="0198c5f2-0000-7000-8000-b4a2d0c1e3f7",
+    name="Priya Shah",
+    email="priya.shah@carrierhomecomfort.example.com",
+    role="brand",
+    avatar_url=None,
+    address=UserAddress(
+        line1="1 Carrier Pkwy",
+        city="Syracuse",
+        state="NY",
+        postal_code="13221",
+        country="US",
+    ),
+    created_at="2023-11-01T09:30:00Z",
+)
+
 MOCK_NOTIFICATIONS: list[NotificationOut] = [
     NotificationOut(
         id="n-01",

@@ -1,12 +1,15 @@
 import {
   Bot,
-  FolderKanban,
+  ClipboardList,
+  FileStack,
+  FolderLock,
   Images,
   Inbox,
   LayoutDashboard,
   MessageSquare,
   ReceiptText,
   Star,
+  Users,
 } from "lucide-react";
 
 import { PROVIDER_ROUTES } from "@/lib/provider/constants";
@@ -28,7 +31,10 @@ export const PROVIDER_SHELL: ShellConfig = {
     { label: "Overview", href: PROVIDER_ROUTES.dashboard, icon: LayoutDashboard },
     { label: "Leads", href: PROVIDER_ROUTES.leads, icon: Inbox },
     { label: "Quotes", href: PROVIDER_ROUTES.quotes, icon: ReceiptText },
-    { label: "Jobs", href: PROVIDER_ROUTES.projects, icon: FolderKanban },
+    { label: "Orders", href: PROVIDER_ROUTES.orders, icon: ClipboardList },
+    { label: "Invoices", href: PROVIDER_ROUTES.invoices, icon: FileStack },
+    { label: "Customers", href: PROVIDER_ROUTES.customers, icon: Users },
+    { label: "Documents", href: PROVIDER_ROUTES.documents, icon: FolderLock },
     { label: "Messages", href: PROVIDER_ROUTES.messages, icon: MessageSquare },
     { label: "Reviews", href: PROVIDER_ROUTES.reviews, icon: Star },
     { label: "Portfolio", href: PROVIDER_ROUTES.portfolio, icon: Images },

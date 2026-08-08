@@ -1,18 +1,26 @@
 "use client";
 
-import { LeadKanban } from "@/app/components/provider/lead-kanban";
+import { useCrm } from "@/lib/provider/hooks/use-crm";
+import { LeadsTab } from "@/app/components/provider/leads-tab";
+import { DashboardSkeleton, ErrorState } from "@/app/components/shared/states";
 
 export default function LeadsPage() {
+  const { data, loading, error, retry } = useCrm();
+
+  if (loading) return <DashboardSkeleton />;
+  if (error || !data) {
+    return <ErrorState message={error?.message} onRetry={retry} className="min-h-96" />;
+  }
+
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">Lead Pipeline</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Leads</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Track every lead from first match to won job. Accept or decline new
-          leads before their response window closes.
+          AI-matched and inbound leads. Accept or decline before their response window closes.
         </p>
       </div>
-      <LeadKanban />
+      <LeadsTab leads={data.leads} onChange={retry} />
     </div>
   );
 }

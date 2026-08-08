@@ -7,4 +7,7 @@ export const HOMEOWNER_ENDPOINTS = {
   projectQuotes: (id: string) => `/projects/${id}/quotes`,
   quotes: "/quotes",
   providersRecommended: "/providers/recommended",
+  documents: "/documents",
+  document: (id: string) => `/documents/${id}`,
+  serviceRecords: "/service-records",
 } as const;

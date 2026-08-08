@@ -5,10 +5,12 @@
 
 import type { ActivityItem } from "@/lib/types";
 import type {
+  HomeDocument,
   HomeownerDashboard,
   Project,
   Quote,
   RecommendedProvider,
+  ServiceRecord,
 } from "@/lib/homeowner/types";
 import { MOCK_NOTIFICATIONS } from "@/lib/mocks/notifications";
 
@@ -173,6 +175,184 @@ export const MOCK_ACTIVITY: ActivityItem[] = [
   { id: "a-04", kind: "provider_matched", text: "3 providers matched to Backyard Landscaping", createdAt: daysAgo(1) },
   { id: "a-05", kind: "project_created", text: "You posted Backyard Landscaping", createdAt: daysAgo(2) },
 ];
+
+// --- Home Digital Twin -------------------------------------------------
+// One list, four categories — mirrors the `docs` table's single-table-plus-
+// metadata design (see backend/db/schema.sql).
+
+export const MOCK_DOCUMENTS: HomeDocument[] = [
+  {
+    id: "doc-001",
+    category: "invoice",
+    title: "Samsung French Door Refrigerator",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(210),
+    tags: ["kitchen", "appliance"],
+    linkedAppliance: "Refrigerator",
+    notes: null,
+    vendor: "Amazon.com",
+    amount: 2149,
+    purchaseDate: daysAgo(210),
+    orderNumber: "112-4471963-2210649",
+  },
+  {
+    id: "doc-002",
+    category: "invoice",
+    title: "Roof Replacement — Final Invoice",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(60),
+    tags: ["roof", "exterior"],
+    linkedAppliance: null,
+    notes: null,
+    vendor: "Hill Country Roofing Co.",
+    amount: 14200,
+    purchaseDate: daysAgo(60),
+    orderNumber: null,
+  },
+  {
+    id: "doc-003",
+    category: "warranty",
+    title: "Refrigerator — Manufacturer Warranty",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(210),
+    tags: ["kitchen", "appliance"],
+    linkedAppliance: "Refrigerator",
+    notes: null,
+    brand: "Samsung",
+    purchaseDate: daysAgo(210),
+    expiresAt: daysAgo(-155),
+  },
+  {
+    id: "doc-004",
+    category: "warranty",
+    title: "Roof — Workmanship Warranty",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(60),
+    tags: ["roof", "exterior"],
+    linkedAppliance: null,
+    notes: null,
+    brand: "Hill Country Roofing Co.",
+    purchaseDate: daysAgo(60),
+    expiresAt: daysAgo(-3615),
+  },
+  {
+    id: "doc-005",
+    category: "warranty",
+    title: "HVAC System — Parts Warranty",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(320),
+    tags: ["hvac"],
+    linkedAppliance: "HVAC System",
+    notes: null,
+    brand: "Carrier",
+    purchaseDate: daysAgo(320),
+    expiresAt: daysAgo(-10),
+  },
+  {
+    id: "doc-006",
+    category: "photo",
+    title: "Kitchen — Before Renovation",
+    fileUrl: null,
+    fileType: "jpg",
+    uploadedAt: daysAgo(21),
+    tags: ["kitchen", "before"],
+    linkedAppliance: null,
+    notes: null,
+  },
+  {
+    id: "doc-007",
+    category: "photo",
+    title: "Roof — Post-Install Inspection",
+    fileUrl: null,
+    fileType: "jpg",
+    uploadedAt: daysAgo(58),
+    tags: ["roof", "after"],
+    linkedAppliance: null,
+    notes: null,
+  },
+  {
+    id: "doc-008",
+    category: "manual",
+    title: "Refrigerator — Owner's Manual",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(210),
+    tags: ["kitchen", "appliance"],
+    linkedAppliance: "Refrigerator",
+    notes: null,
+    brand: "Samsung",
+  },
+  {
+    id: "doc-009",
+    category: "manual",
+    title: "HVAC System — Installation & Service Guide",
+    fileUrl: null,
+    fileType: "pdf",
+    uploadedAt: daysAgo(320),
+    tags: ["hvac"],
+    linkedAppliance: "HVAC System",
+    notes: null,
+    brand: "Carrier",
+  },
+];
+
+export const MOCK_SERVICE_RECORDS: ServiceRecord[] = [
+  {
+    id: "sr-001",
+    serviceDate: daysAgo(60),
+    contractorName: "Hill Country Roofing Co.",
+    workPerformed:
+      "Full roof replacement — asphalt shingle, ~2,400 sq ft, underlayment inspected and replaced.",
+    cost: 14200,
+    linkedDocumentId: "doc-002",
+    notes: null,
+  },
+  {
+    id: "sr-002",
+    serviceDate: daysAgo(150),
+    contractorName: "Austin HVAC Pros",
+    workPerformed: "Annual HVAC tune-up: filter replacement, coolant level check, thermostat calibration.",
+    cost: 185,
+    linkedDocumentId: null,
+    notes: null,
+  },
+  {
+    id: "sr-003",
+    serviceDate: daysAgo(210),
+    contractorName: null,
+    workPerformed: "New refrigerator delivered and installed (self-install).",
+    cost: 2149,
+    linkedDocumentId: "doc-001",
+    notes: null,
+  },
+];
+
+let documentIdCounter = MOCK_DOCUMENTS.length + 1;
+export function addMockDocument(doc: Omit<HomeDocument, "id" | "uploadedAt" | "fileUrl">): HomeDocument {
+  const created: HomeDocument = {
+    ...doc,
+    id: `doc-${String(documentIdCounter++).padStart(3, "0")}`,
+    fileUrl: null,
+    uploadedAt: new Date().toISOString(),
+  };
+  MOCK_DOCUMENTS.push(created);
+  return created;
+}
+
+let serviceRecordIdCounter = MOCK_SERVICE_RECORDS.length + 1;
+export function addMockServiceRecord(record: Omit<ServiceRecord, "id">): ServiceRecord {
+  const created: ServiceRecord = {
+    ...record,
+    id: `sr-${String(serviceRecordIdCounter++).padStart(3, "0")}`,
+  };
+  MOCK_SERVICE_RECORDS.push(created);
+  return created;
+}
 
 export function buildMockDashboard(): HomeownerDashboard {
   const activeProjects = MOCK_PROJECTS.filter(

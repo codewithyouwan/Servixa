@@ -14,14 +14,15 @@ import { authService } from "@/lib/auth";
 import { MOCK_NOTIFICATIONS } from "@/lib/mocks/notifications";
 import { resolveHomeownerMock } from "@/lib/homeowner/mocks/handlers";
 import { resolveProviderMock } from "@/lib/provider/mocks/handlers";
+import { resolveBrandMock } from "@/lib/brand/mocks/handlers";
 
 const LATENCY_MS = 550;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-type MockResolver = (path: string, method: string) => unknown;
+type MockResolver = (path: string, method: string, body?: unknown) => unknown;
 
-const MODULE_RESOLVERS: MockResolver[] = [resolveHomeownerMock, resolveProviderMock];
+const MODULE_RESOLVERS: MockResolver[] = [resolveHomeownerMock, resolveProviderMock, resolveBrandMock];
 
 async function resolveShared(path: string, method: string): Promise<unknown> {
   if (method === "GET") {
@@ -46,7 +47,7 @@ export class MockTransport implements ApiTransport {
     let data = await resolveShared(path, method);
     for (const resolve of MODULE_RESOLVERS) {
       if (data !== undefined) break;
-      data = resolve(path, method);
+      data = resolve(path, method, options.body);
     }
 
     if (data === undefined) {
