@@ -150,10 +150,14 @@ export function Hero() {
           <TrustIndicators items={copy.trustItems} className="animate-fade-up mt-1" />
         </div>
 
-        {/* Real photo (swaps with audience) + product-mock illustration */}
+        {/* Real photo (swaps with audience), with the product-mock card
+            floating on top as one composed visual rather than two stacked
+            blocks. */}
         <div key={audience} className="animate-fade-up mx-auto w-full max-w-md lg:max-w-none">
-          <HeroPhoto audience={audience} className="mb-6" />
-          <Visual />
+          <HeroPhoto audience={audience} className="aspect-[5/4] sm:aspect-[4/3]" />
+          <div className="relative z-10 -mt-14 px-4 sm:-mt-20 sm:px-8">
+            <Visual />
+          </div>
         </div>
       </div>
     </section>

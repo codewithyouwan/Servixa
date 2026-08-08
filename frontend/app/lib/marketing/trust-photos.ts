@@ -30,8 +30,8 @@ const TRUST_PHOTOS: Record<TrustAudience, TrustPhoto> = {
     alt: "A smiling construction worker giving a thumbs up outdoors on a sunny day",
   },
   brand: {
-    id: 5933,
-    alt: "A vibrant, colorful spread of paint and material color swatches",
+    id: 34852719,
+    alt: "Rows of colorful shovel handles displayed in a hardware store",
   },
 };
 

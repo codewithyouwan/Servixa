@@ -16,19 +16,14 @@ export function HeroPhoto({ audience, className }: HeroPhotoProps) {
   const photo = pexelsPhoto(audience, 1600);
 
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-[2rem] shadow-xl shadow-blue-slate-300/40 dark:shadow-black/40",
-        className
-      )}
-    >
+    <div className="relative overflow-hidden rounded-[2rem] shadow-xl shadow-blue-slate-300/40 dark:shadow-black/40">
       {/* eslint-disable-next-line @next/next/no-img-element -- external hotlinked stock photo, no next/image remote-pattern config in this project */}
       <img
         src={photo.src}
         alt={photo.alt}
         loading="eager"
         decoding="async"
-        className="aspect-[16/11] w-full object-cover"
+        className={cn("w-full object-cover", className)}
       />
     </div>
   );

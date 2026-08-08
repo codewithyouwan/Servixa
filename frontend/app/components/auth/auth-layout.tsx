@@ -31,16 +31,16 @@ export function AuthLayout({
   return (
     <main className="grid min-h-dvh grid-cols-1 lg:grid-cols-[1fr_1.1fr]">
       {/* Brand panel */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden p-6 lg:flex xl:p-10">
+      <aside className="relative hidden flex-col overflow-hidden lg:flex">
         {/* Real photo backdrop, shown bright and uncovered — reacts to the
             selected account type on sign-up, defaults to the homeowner
-            shot on Login. The logo and copy live in their own light glass
-            cards below rather than a dark scrim over the whole photo. */}
+            shot on Login. */}
         <AuthPanelPhoto />
 
+        {/* Logo chip floats over the photo, top-left. */}
         <Link
           href="/pages/main"
-          className="relative z-10 flex w-fit items-center gap-2 rounded-2xl bg-white/95 py-2 pr-4 pl-2 shadow-md outline-none backdrop-blur-sm focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
+          className="absolute top-6 left-6 z-10 flex w-fit items-center gap-2 rounded-2xl bg-white/95 py-2 pr-4 pl-2 shadow-md outline-none backdrop-blur-sm focus-visible:ring-3 focus-visible:ring-muted-teal-400/60 xl:top-10 xl:left-10"
           aria-label="BestBuild home"
         >
           <LogoTile size={36} />
@@ -49,17 +49,26 @@ export function AuthLayout({
           </span>
         </Link>
 
-        <div className="relative z-10 max-w-md rounded-2xl bg-white/95 p-6 shadow-xl backdrop-blur-sm xl:p-8">
-          {/* Reacts to the selected account type on sign-up (via
-              AccountTypeProvider); renders the static fallbacks on Login. */}
-          <AuthPanelCopy
-            fallbackTitle={panelTitle}
-            fallbackDescription={panelDescription}
-            fallbackPoints={PANEL_POINTS}
+        {/* Solid brand-teal band anchored to the bottom, with a short fade
+            where it meets the photo above — bold and colorful rather than
+            a dark scrim or a floating card in the middle of the photo. */}
+        <div className="relative z-10 mt-auto">
+          <div
+            aria-hidden="true"
+            className="h-20 bg-gradient-to-t from-primary/95 to-transparent"
           />
-          <p className="mt-6 border-t border-blue-slate-100 pt-4 text-xs text-blue-slate-500">
-            Trusted by homeowners and service providers across the U.S.
-          </p>
+          <div className="bg-primary/95 px-8 pt-2 pb-8 backdrop-blur-sm xl:px-12 xl:pb-12">
+            {/* Reacts to the selected account type on sign-up (via
+                AccountTypeProvider); renders the static fallbacks on Login. */}
+            <AuthPanelCopy
+              fallbackTitle={panelTitle}
+              fallbackDescription={panelDescription}
+              fallbackPoints={PANEL_POINTS}
+            />
+            <p className="mt-6 border-t border-white/25 pt-4 text-xs text-white/75">
+              Trusted by homeowners and service providers across the U.S.
+            </p>
+          </div>
         </div>
       </aside>
 
