@@ -5,6 +5,7 @@ import { Navbar } from "@/app/components/marketing/navbar";
 import { Hero } from "@/app/components/marketing/hero";
 import { FloatingSearchBar } from "@/app/components/marketing/floating-search-bar";
 import { TrustedBy } from "@/app/components/marketing/trusted-by";
+import { TrustGallery } from "@/app/components/marketing/trust-gallery";
 import { AiAssistantPreview } from "@/app/components/marketing/ai-assistant-preview";
 import { HowItWorks } from "@/app/components/marketing/how-it-works";
 import { PopularServices } from "@/app/components/marketing/popular-services";
@@ -36,6 +37,7 @@ export default function MainPage() {
       <main>
         <Hero />
         <TrustedBy />
+        <TrustGallery />
         <AiAssistantPreview />
         <HowItWorks />
         <PopularServices />

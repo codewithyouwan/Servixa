@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { AuthPanelCopy } from "@/app/components/auth/auth-panel-copy";
+import { AuthPanelPhoto } from "@/app/components/auth/auth-panel-photo";
 import { Logo } from "@/app/components/shared/logo";
 
 interface AuthLayoutProps {
@@ -31,25 +32,34 @@ export function AuthLayout({
     <main className="grid min-h-dvh grid-cols-1 lg:grid-cols-[1fr_1.1fr]">
       {/* Brand panel */}
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-space-indigo-950 p-10 text-blue-slate-50 lg:flex xl:p-14">
+        {/* Real photo backdrop — reacts to the selected account type on
+            sign-up, defaults to the homeowner shot on Login. */}
+        <AuthPanelPhoto />
+        {/* Scrim: keeps the logo/copy/trust line legible over the photo. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 z-[1] bg-gradient-to-t from-space-indigo-950 via-space-indigo-950/85 to-space-indigo-950/55"
+        />
+
         {/* Ambient glows */}
         <div
           aria-hidden="true"
-          className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-space-indigo-700/40 blur-3xl"
+          className="absolute -top-24 -left-24 z-[1] h-96 w-96 rounded-full bg-space-indigo-700/40 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="absolute -right-24 -bottom-24 h-96 w-96 rounded-full bg-muted-teal-700/30 blur-3xl"
+          className="absolute -right-24 -bottom-24 z-[1] h-96 w-96 rounded-full bg-muted-teal-700/30 blur-3xl"
         />
 
         <Link
           href="/pages/main"
-          className="relative flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
+          className="relative z-10 flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
           aria-label="BestBuild home"
         >
           <Logo markSize={32} tone="light" />
         </Link>
 
-        <div className="relative max-w-md">
+        <div className="relative z-10 max-w-md">
           {/* Reacts to the selected account type on sign-up (via
               AccountTypeProvider); renders the static fallbacks on Login. */}
           <AuthPanelCopy
@@ -59,7 +69,7 @@ export function AuthLayout({
           />
         </div>
 
-        <p className="relative text-xs text-blue-slate-400">
+        <p className="relative z-10 text-xs text-blue-slate-400">
           Trusted by homeowners and service providers across the U.S.
         </p>
       </aside>
