@@ -12,7 +12,21 @@ CREATE TYPE order_status AS ENUM ('ordered', 'in_transit', 'cancelled', 'dispatc
 CREATE TYPE payment_method AS ENUM ('cash', 'online');
 
 -- Added 'ai_use' for AI/Vector search documents
-CREATE TYPE doc_type AS ENUM ('verification', 'warranty', 'receipt', 'legal', 'ai_use');
+-- Added 'invoice', 'photo', 'manual' for the Homeowner Digital Twin (docs table reused
+-- rather than five separate tables — same entity shape: a file owned by a user).
+-- Added 'license', 'insurance', 'contract' for the Contractor CRM's Documents
+-- section — same reuse: a contractor's business docs are still just a file
+-- owned by a user, so this is the same `docs` table + metadata JSONB, not a
+-- new table. 'photo' and 'legal' are shared with the other two doc sets.
+-- Added 'spec_sheet', 'marketing', 'install_guide' for Brand Profile's
+-- Downloads section — third reuse of the same table/pattern ('manual' was
+-- already here from the Digital Twin, covers Downloads' manual category too).
+CREATE TYPE doc_type AS ENUM (
+    'verification', 'warranty', 'receipt', 'legal', 'ai_use',
+    'invoice', 'photo', 'manual',
+    'license', 'insurance', 'contract',
+    'spec_sheet', 'marketing', 'install_guide'
+);
 
 -- #endregion
 
@@ -34,12 +48,22 @@ CREATE TABLE users (
     updated_by uuid
 );
 
+-- Feature 3 (Brand Profile) reuses this table as-is: the product-facing
+-- role/label is "brand" (see UserRole in app/schemas/user.py), but the DB
+-- enum/table name predates that feature and says "company" — same naming
+-- split already established for service_provider (role) vs. contractor (DB
+-- enum). company_details JSONB holds the Brand Profile's Company Overview
+-- fields (tagline, description, website, foundedYear, certifications,
+-- contact info) — free-form for the same reason order_details/metadata are
+-- JSONB elsewhere: the field set doesn't need to be queried relationally yet.
 CREATE TABLE company (
     company_id uuid PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
     company_name VARCHAR NOT NULL UNIQUE,
     company_details JSONB NOT NULL
 );
 
+-- Backs Brand Profile's "Products / Services" section directly — no new
+-- table needed, this already had the right shape.
 CREATE TABLE company_products (
     product_id uuid PRIMARY KEY DEFAULT uuidv7(),
     company_id uuid REFERENCES company(company_id) ON DELETE CASCADE,
@@ -59,7 +83,28 @@ CREATE TABLE docs (
     doc_name VARCHAR(150) NOT NULL,
     doc_type doc_type NOT NULL,
     doc_url TEXT NOT NULL,
+    -- Category-specific structured fields (vendor, amount, expiry, linked appliance,
+    -- tags...). Kept as JSONB instead of a column-per-category or a table-per-category
+    -- because the field set differs per doc_type and none of it needs to be queried
+    -- relationally yet — same tradeoff already made for order_details/company_details
+    -- elsewhere in this schema.
+    metadata JSONB,
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Home Digital Twin: chronological service/maintenance log for a home, separate from
+-- `docs` because an entry isn't a file — it's a record of work done, optionally backed
+-- by one (e.g. the invoice for that visit).
+CREATE TABLE service_records (
+    service_record_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    service_date DATE NOT NULL,
+    contractor_name VARCHAR(150),
+    work_performed TEXT NOT NULL,
+    cost BIGINT,
+    linked_doc_id uuid REFERENCES docs(doc_id) ON DELETE SET NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE orders (
@@ -171,6 +216,47 @@ CREATE TABLE project_payments (
     payment_receipts TEXT[]
 );
 
+-- Contractor CRM: quotes + invoices. Deliberately NOT wired to `projects`/
+-- `project_payments` — those two don't yet match the shape the rest of this
+-- app's mocked API contract already relies on (project_payments assumes a
+-- payment already happened; projects has no title/budget/category columns
+-- the API returns). Reconciling that is a separate, larger migration; these
+-- two tables are scoped directly by contractor_id/homeowner_id so the CRM
+-- has a clean, real backing store without taking on that reconciliation now.
+CREATE TYPE quote_status AS ENUM ('draft', 'sent', 'accepted', 'declined', 'expired');
+CREATE TYPE invoice_status AS ENUM ('draft', 'sent', 'paid', 'overdue');
+
+CREATE TABLE quotes (
+    quote_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    contractor_id uuid NOT NULL REFERENCES service_providers(user_id) ON DELETE CASCADE,
+    homeowner_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    project_id uuid REFERENCES projects(project_id) ON DELETE SET NULL, -- optional link once a real project exists
+    title VARCHAR(200) NOT NULL,
+    line_items JSONB NOT NULL DEFAULT '[]', -- [{description, quantity, unitPrice}]
+    amount BIGINT NOT NULL,
+    status quote_status NOT NULL DEFAULT 'draft',
+    ai_generated BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Populated once accepted — an "Order" in the CRM is just an accepted
+    -- quote with scheduling info, not a separate table.
+    scheduled_date DATE,
+    completed_date DATE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sent_at TIMESTAMPTZ,
+    responded_at TIMESTAMPTZ
+);
+
+CREATE TABLE invoices (
+    invoice_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    quote_id uuid NOT NULL REFERENCES quotes(quote_id) ON DELETE CASCADE,
+    contractor_id uuid NOT NULL REFERENCES service_providers(user_id) ON DELETE CASCADE,
+    homeowner_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    amount BIGINT NOT NULL,
+    status invoice_status NOT NULL DEFAULT 'draft',
+    due_date DATE,
+    paid_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE ratings (
     rating_id uuid PRIMARY KEY DEFAULT uuidv7(),
     rated_by uuid NOT NULL REFERENCES users(user_id),
@@ -181,6 +267,62 @@ CREATE TABLE ratings (
     rated_at TIMESTAMPTZ DEFAULT NOW(),
     edited_at TIMESTAMPTZ DEFAULT NULL
 );
+
+-- #endregion
+
+-- ==========================================
+-- #region BRAND PROFILE
+-- ==========================================
+-- Company Overview -> `company` table (see CORE USER MANAGEMENT above).
+-- Products/Services -> `company_products` (same). Downloads -> `docs` table
+-- (same one Feature 1/2 use — see doc_type enum above). Projects (case
+-- studies), Dealers & Distributors, and Support tickets get new tables below:
+-- nothing existing matched those shapes closely enough to reuse.
+
+CREATE TABLE brand_projects (
+    brand_project_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    company_id uuid NOT NULL REFERENCES company(company_id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    location VARCHAR(150),
+    completion_date DATE,
+    image_url TEXT,
+    linked_products TEXT[], -- product names — informal reference, same tradeoff as rating_attachments elsewhere
+    linked_contractor_id uuid REFERENCES service_providers(user_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE brand_dealers (
+    dealer_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    company_id uuid NOT NULL REFERENCES company(company_id) ON DELETE CASCADE,
+    name VARCHAR(200) NOT NULL,
+    region VARCHAR(150) NOT NULL,
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(50),
+    website TEXT,
+    linked_contractor_id uuid REFERENCES service_providers(user_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TYPE ticket_status AS ENUM ('open', 'resolved');
+
+CREATE TABLE brand_support_tickets (
+    ticket_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    company_id uuid NOT NULL REFERENCES company(company_id) ON DELETE CASCADE,
+    submitted_by uuid REFERENCES users(user_id) ON DELETE SET NULL,
+    submitted_by_name VARCHAR(150) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    status ticket_status NOT NULL DEFAULT 'open',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    resolved_at TIMESTAMPTZ
+);
+
+-- FAQs are deliberately NOT a table for v1 — static Q&A copy the brand admin
+-- edits rarely, same category as the auth flow's account-type marketing copy
+-- (frontend/app/components/auth/auth-panel-copy.tsx). Served as a plain list
+-- from mock_data.py / fixtures.ts; promote to a table if/when brands need to
+-- self-edit FAQs through the UI.
 
 -- #endregion
 
@@ -243,12 +385,21 @@ CREATE TABLE product_embeddings (
     last_indexed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Cache table to serve compatibility scoring between projects and contractors quickly
+-- Lead pipeline status. A "lead" (Contractor CRM) IS a row in
+-- project_contractor_matches — the AI already computes "this project matches
+-- this contractor" here; a lead is just that match plus what the contractor
+-- did about it. Reusing the table instead of adding a parallel `leads` table.
+CREATE TYPE lead_status AS ENUM ('new', 'contacted', 'qualified', 'converted', 'lost');
+
+-- Cache table to serve compatibility scoring between projects and contractors quickly.
+-- Doubles as the Contractor CRM's Leads list (see lead_status above).
 CREATE TABLE project_contractor_matches (
     project_id uuid NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
     contractor_id uuid NOT NULL REFERENCES service_providers(user_id) ON DELETE CASCADE,
     compatibility_score DECIMAL(5,2) NOT NULL, -- e.g., 94.50% compatibility
     matching_reasons JSONB, -- Context on why they matched (e.g., {"reason": "Matches past plumbing scopes"})
+    status lead_status NOT NULL DEFAULT 'new',
+    responded_at TIMESTAMPTZ,
     calculated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (project_id, contractor_id)
 );

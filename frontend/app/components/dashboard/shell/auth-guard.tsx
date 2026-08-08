@@ -5,7 +5,7 @@
  * With real JWT auth this component is unchanged: it only talks to useAuth().
  */
 
-import { useEffect, type ReactNode } from "react";
+import { Suspense, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { ROUTES } from "@/lib/constants/routes";
@@ -49,7 +49,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-background">
-      <Sidebar />
+      {/* Sidebar reads the active CRM tab from the URL to highlight it. */}
+      <Suspense>
+        <Sidebar />
+      </Suspense>
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar user={user} notifications={notifications ?? []} />
         <main className="flex-1 p-4 sm:p-6">{children}</main>
