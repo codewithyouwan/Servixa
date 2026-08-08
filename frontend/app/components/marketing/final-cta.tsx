@@ -58,6 +58,12 @@ export function FinalCta() {
               Join as a Service Provider
             </Link>
           </div>
+          <Link
+            href="/pages/auth/signup"
+            className="mt-5 inline-block text-sm font-medium text-blue-slate-300 underline-offset-4 hover:text-blue-slate-50 hover:underline"
+          >
+            Or list your brand →
+          </Link>
         </Reveal>
       </div>
     </section>

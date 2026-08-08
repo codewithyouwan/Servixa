@@ -6,6 +6,7 @@ const FOOTER_COLUMNS = [
     links: [
       { label: "Explore Services", href: "#explore-services" },
       { label: "AI Features", href: "#ai-features" },
+      { label: "For Brands", href: "#for-brands" },
       { label: "How It Works", href: "/pages/main" },
       { label: "Pricing", href: "/pages/main" },
     ],
@@ -64,8 +65,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              The AI-powered construction marketplace connecting homeowners
-              with verified service providers across the United States.
+              The AI-powered construction marketplace connecting homeowners,
+              verified service providers, and brands across the United States.
             </p>
           </div>
 
@@ -95,7 +96,7 @@ export function Footer() {
             © {new Date().getFullYear()} BestBuild, Inc. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            Built for homeowners &amp; service providers, everywhere in the US.
+            Built for homeowners, service providers &amp; brands, everywhere in the US.
           </p>
         </div>
       </div>

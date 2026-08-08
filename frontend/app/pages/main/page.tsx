@@ -13,6 +13,7 @@ import { FeaturedProviders } from "@/app/components/marketing/featured-providers
 import { AiMatchingPreview } from "@/app/components/marketing/ai-matching-preview";
 import { QuoteComparisonPreview } from "@/app/components/marketing/quote-comparison-preview";
 import { DashboardPreview } from "@/app/components/marketing/dashboard-preview";
+import { ForBrands } from "@/app/components/marketing/for-brands";
 import { Testimonials } from "@/app/components/marketing/testimonials";
 import { Stats } from "@/app/components/marketing/stats";
 import { Careers } from "@/app/components/marketing/careers";
@@ -43,6 +44,7 @@ export default function MainPage() {
         <AiMatchingPreview />
         <QuoteComparisonPreview />
         <DashboardPreview />
+        <ForBrands />
         <Testimonials />
         <Stats />
         <Careers />
