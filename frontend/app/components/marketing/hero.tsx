@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { HeroSearchBar } from "@/app/components/marketing/hero-search-bar";
+import { HeroPhoto } from "@/app/components/marketing/hero-photo";
 import { TrustIndicators } from "@/app/components/marketing/trust-indicators";
 import { HeroDashboard } from "@/app/components/marketing/hero-dashboard";
 import { HeroDashboardProvider } from "@/app/components/marketing/hero-dashboard-provider";
@@ -149,8 +150,9 @@ export function Hero() {
           <TrustIndicators items={copy.trustItems} className="animate-fade-up mt-1" />
         </div>
 
-        {/* Product-mock illustration column */}
+        {/* Real photo (swaps with audience) + product-mock illustration */}
         <div key={audience} className="animate-fade-up mx-auto w-full max-w-md lg:max-w-none">
+          <HeroPhoto audience={audience} className="mb-6" />
           <Visual />
         </div>
       </div>

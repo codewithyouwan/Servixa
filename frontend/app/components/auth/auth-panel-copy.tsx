@@ -78,10 +78,10 @@ export function AuthPanelCopy({
   return (
     /* Re-keyed on account type so the block gently animates on change. */
     <div key={ctx ? ctx[0] : "static"} className={ctx ? "animate-step-in" : undefined}>
-      <h2 className="text-3xl font-semibold tracking-tight text-balance xl:text-4xl">
+      <h2 className="text-3xl font-semibold tracking-tight text-balance text-space-indigo-950 xl:text-4xl">
         {copy.title}
       </h2>
-      <p className="mt-4 text-base leading-relaxed text-blue-slate-300">
+      <p className="mt-4 text-base leading-relaxed text-blue-slate-600">
         {copy.description}
       </p>
       <ul className="mt-8 space-y-3">
@@ -89,9 +89,9 @@ export function AuthPanelCopy({
           <li key={point} className="flex items-start gap-2.5 text-sm">
             <CircleCheck
               aria-hidden="true"
-              className="mt-0.5 h-4 w-4 shrink-0 text-tea-green-400"
+              className="mt-0.5 h-4 w-4 shrink-0 text-muted-teal-600"
             />
-            <span className="text-blue-slate-200">{point}</span>
+            <span className="text-blue-slate-700">{point}</span>
           </li>
         ))}
       </ul>

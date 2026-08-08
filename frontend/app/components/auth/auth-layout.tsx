@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { AuthPanelCopy } from "@/app/components/auth/auth-panel-copy";
 import { AuthPanelPhoto } from "@/app/components/auth/auth-panel-photo";
-import { Logo } from "@/app/components/shared/logo";
+import { Logo, LogoTile } from "@/app/components/shared/logo";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -31,35 +31,25 @@ export function AuthLayout({
   return (
     <main className="grid min-h-dvh grid-cols-1 lg:grid-cols-[1fr_1.1fr]">
       {/* Brand panel */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-space-indigo-950 p-10 text-blue-slate-50 lg:flex xl:p-14">
-        {/* Real photo backdrop — reacts to the selected account type on
-            sign-up, defaults to the homeowner shot on Login. */}
+      <aside className="relative hidden flex-col justify-between overflow-hidden p-6 lg:flex xl:p-10">
+        {/* Real photo backdrop, shown bright and uncovered — reacts to the
+            selected account type on sign-up, defaults to the homeowner
+            shot on Login. The logo and copy live in their own light glass
+            cards below rather than a dark scrim over the whole photo. */}
         <AuthPanelPhoto />
-        {/* Scrim: keeps the logo/copy/trust line legible over the photo. */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 z-[1] bg-gradient-to-t from-space-indigo-950 via-space-indigo-950/85 to-space-indigo-950/55"
-        />
-
-        {/* Ambient glows */}
-        <div
-          aria-hidden="true"
-          className="absolute -top-24 -left-24 z-[1] h-96 w-96 rounded-full bg-space-indigo-700/40 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -right-24 -bottom-24 z-[1] h-96 w-96 rounded-full bg-muted-teal-700/30 blur-3xl"
-        />
 
         <Link
           href="/pages/main"
-          className="relative z-10 flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
+          className="relative z-10 flex w-fit items-center gap-2 rounded-2xl bg-white/95 py-2 pr-4 pl-2 shadow-md outline-none backdrop-blur-sm focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
           aria-label="BestBuild home"
         >
-          <Logo markSize={32} tone="light" />
+          <LogoTile size={36} />
+          <span className="text-base font-semibold tracking-tight text-space-indigo-950">
+            Best<span className="text-primary">Build</span>
+          </span>
         </Link>
 
-        <div className="relative z-10 max-w-md">
+        <div className="relative z-10 max-w-md rounded-2xl bg-white/95 p-6 shadow-xl backdrop-blur-sm xl:p-8">
           {/* Reacts to the selected account type on sign-up (via
               AccountTypeProvider); renders the static fallbacks on Login. */}
           <AuthPanelCopy
@@ -67,11 +57,10 @@ export function AuthLayout({
             fallbackDescription={panelDescription}
             fallbackPoints={PANEL_POINTS}
           />
+          <p className="mt-6 border-t border-blue-slate-100 pt-4 text-xs text-blue-slate-500">
+            Trusted by homeowners and service providers across the U.S.
+          </p>
         </div>
-
-        <p className="relative z-10 text-xs text-blue-slate-400">
-          Trusted by homeowners and service providers across the U.S.
-        </p>
       </aside>
 
       {/* Form side */}
