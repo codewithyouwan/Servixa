@@ -17,7 +17,6 @@ import { DashboardPreview } from "@/app/components/marketing/dashboard-preview";
 import { ForBrands } from "@/app/components/marketing/for-brands";
 import { Testimonials } from "@/app/components/marketing/testimonials";
 import { Stats } from "@/app/components/marketing/stats";
-import { Careers } from "@/app/components/marketing/careers";
 import { Faq } from "@/app/components/marketing/faq";
 import { Newsletter } from "@/app/components/marketing/newsletter";
 import { FinalCta } from "@/app/components/marketing/final-cta";
@@ -49,7 +48,6 @@ export default function MainPage() {
         <ForBrands />
         <Testimonials />
         <Stats />
-        <Careers />
         <Faq />
         <Newsletter />
         <FinalCta />
