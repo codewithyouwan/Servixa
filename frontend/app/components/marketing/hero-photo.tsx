@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { pexelsPhoto, type TrustAudience } from "@/app/lib/marketing/trust-photos";
+import { trustPhoto, type TrustAudience } from "@/app/lib/marketing/trust-photos";
 
 interface HeroPhotoProps {
   audience: TrustAudience;
@@ -13,7 +13,7 @@ interface HeroPhotoProps {
  * mock (<HeroDashboard>-family) sits below it, not over it.
  */
 export function HeroPhoto({ audience, className }: HeroPhotoProps) {
-  const photo = pexelsPhoto(audience, 1600);
+  const photo = trustPhoto(audience, 1600);
 
   return (
     <div className="relative overflow-hidden rounded-[2rem] shadow-xl shadow-blue-slate-300/40 dark:shadow-black/40">

@@ -5,41 +5,42 @@
  * "Homeowners / Service Providers / Brands" reads as one consistent set
  * wherever it appears, and swaps together when the audience changes.
  *
- * Deliberately picked for mood over literalism: no dark overlays, no
- * moody/industrial tones, no crowded family-portrait clichés — clean,
- * high-resolution, currently-live Pexels photos (free license, hotlinking
- * permitted, no attribution required). To swap art direction, only this
- * file needs to change.
+ * Homeowner and provider are first-party photos served from /public;
+ * brand still hotlinks a Pexels photo (free license, hotlinking permitted,
+ * no attribution required). To swap art direction, only this file needs
+ * to change.
  */
 
 export type TrustAudience = "homeowner" | "provider" | "brand";
 
-interface TrustPhoto {
-  /** Pexels photo ID — CDN URL is built from this via `pexelsPhoto()`. */
-  id: number;
-  alt: string;
-}
+type TrustPhoto =
+  | { src: string; alt: string }
+  | { /** Pexels photo ID — CDN URL is built from this. */ pexelsId: number; alt: string };
 
 const TRUST_PHOTOS: Record<TrustAudience, TrustPhoto> = {
   homeowner: {
-    id: 5998041,
-    alt: "A bright, colorful modern kitchen interior",
+    src: "/photos/homeowner.jpeg",
+    alt: "A smiling homeowner planning her project on a tablet in a bright kitchen",
   },
   provider: {
-    id: 34670920,
-    alt: "A smiling construction worker giving a thumbs up outdoors on a sunny day",
+    src: "/photos/provider.jpeg",
+    alt: "A smiling plumber giving a thumbs up while installing a kitchen sink",
   },
   brand: {
-    id: 34852719,
+    pexelsId: 34852719,
     alt: "Rows of colorful shovel handles displayed in a hardware store",
   },
 };
 
-/** Pexels CDN URL at a given render width — bump `w` for sharper/HD output. */
-export function pexelsPhoto(audience: TrustAudience, width: number) {
-  const { id, alt } = TRUST_PHOTOS[audience];
+/**
+ * Photo for an audience at a given render width. Width only affects
+ * CDN-served photos — first-party photos ship at their native size.
+ */
+export function trustPhoto(audience: TrustAudience, width: number) {
+  const photo = TRUST_PHOTOS[audience];
+  if ("src" in photo) return photo;
   return {
-    src: `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${width}`,
-    alt,
+    src: `https://images.pexels.com/photos/${photo.pexelsId}/pexels-photo-${photo.pexelsId}.jpeg?auto=compress&cs=tinysrgb&w=${width}`,
+    alt: photo.alt,
   };
 }

@@ -1,6 +1,6 @@
 import { Reveal } from "@/app/components/marketing/reveal";
 import { SectionHeading } from "@/app/components/marketing/section-heading";
-import { pexelsPhoto, type TrustAudience } from "@/app/lib/marketing/trust-photos";
+import { trustPhoto, type TrustAudience } from "@/app/lib/marketing/trust-photos";
 
 /**
  * Section — Trust Gallery: real photography (not illustration) of the three
@@ -49,7 +49,7 @@ export function TrustGallery() {
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
           {CARDS.map((card, i) => {
-            const photo = pexelsPhoto(card.audience, 800);
+            const photo = trustPhoto(card.audience, 800);
             return (
               <Reveal key={card.role} delay={i * 100}>
                 <figure className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
