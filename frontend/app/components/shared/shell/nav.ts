@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import type { LucideIcon } from "lucide-react";
 
 /** Navigation/config contract each module passes to the shared AppShell. */
@@ -22,4 +23,6 @@ export interface ShellConfig {
   settingsHref: string;
   /** Primary action shown in the topbar (optional). */
   cta?: ShellCta;
+  /** Overrides the default three-state theme toggle in the topbar. */
+  themeToggle?: ComponentType;
 }

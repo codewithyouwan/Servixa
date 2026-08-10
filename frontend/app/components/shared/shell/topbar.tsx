@@ -20,6 +20,7 @@ interface TopbarProps {
 
 export function Topbar({ config, user, notifications }: TopbarProps) {
   const CtaIcon = config.cta?.icon ?? Plus;
+  const Toggle = config.themeToggle ?? ThemeToggle;
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -40,7 +41,7 @@ export function Topbar({ config, user, notifications }: TopbarProps) {
             {config.cta.label}
           </Button>
         )}
-        <ThemeToggle />
+        <Toggle />
         <NotificationsPopover notifications={notifications} />
         <UserMenu user={user} settingsHref={config.settingsHref} />
       </div>
