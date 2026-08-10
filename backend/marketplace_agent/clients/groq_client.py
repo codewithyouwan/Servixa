@@ -78,6 +78,7 @@ class LLMClient:
         retry_base_delay: float = 1.0,
         max_tool_rounds: int = 5,
         api_key: str | None = None,
+        structured_method: str | None = None,
         **model_kwargs: Any,
     ):
         """
@@ -90,6 +91,10 @@ class LLMClient:
             retry_base_delay: First backoff delay in seconds (doubles each retry).
             max_tool_rounds: Cap on tool-call round trips per invoke().
             api_key: Overrides the GROQ_API_KEY env var.
+            structured_method: How with_structured_output enforces the schema.
+                None uses tool calling (default). "json_mode" uses Groq's JSON
+                response format — more reliable for models that emit sloppy
+                tool args, but the prompt must describe the expected JSON keys.
         """
         api_key = api_key or os.getenv("GROQ_API_KEY")
         if not api_key:
@@ -102,6 +107,7 @@ class LLMClient:
         self.max_retries = max_retries
         self.retry_base_delay = retry_base_delay
         self.max_tool_rounds = max_tool_rounds
+        self.structured_method = structured_method
 
         self._llm = ChatGroq(
             model=model,
@@ -148,7 +154,8 @@ class LLMClient:
         messages = self._build_messages(input)
 
         if output_schema is not None:
-            structured = self._llm.with_structured_output(output_schema)
+            kwargs = {"method": self.structured_method} if self.structured_method else {}
+            structured = self._llm.with_structured_output(output_schema, **kwargs)
             return self._call_with_retry(structured, messages)
 
         response: AIMessage = self._call_with_retry(self._llm_with_tools, messages)
@@ -206,7 +213,10 @@ class LLMClient:
             except _RETRYABLE_EXCEPTIONS as exc:
                 last_exc = exc
             except APIStatusError as exc:
-                if exc.status_code < 500:  # 4xx other than 429 won't heal on retry
+                # "tool_use_failed" means the model generated malformed tool
+                # args — a regeneration usually fixes it, so retry. Other 4xx
+                # won't heal on retry.
+                if exc.status_code < 500 and "tool_use_failed" not in str(exc):
                     raise LLMClientError(
                         f"Groq API error {exc.status_code}: {exc.message}"
                     ) from exc
