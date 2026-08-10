@@ -19,7 +19,7 @@ flowchart TD
     Intake -->|complete| Business
 
     Business{{"💼 business subgraph"}}:::business
-    Business -->|done| ENDdone((END done)):::endnode
+    Business -->|done| ENDdone((END done)):::endnode 
     Business -->|error| BizError[Error Log -> END]:::error --> ENDx
 
     classDef entry fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;

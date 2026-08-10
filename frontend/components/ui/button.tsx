@@ -44,11 +44,15 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  nativeButton,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
     <ButtonPrimitive
       data-slot="button"
+      // When a custom element is rendered (e.g. render={<Link/>}), it is not
+      // a native <button>; default nativeButton accordingly. Callers can override.
+      nativeButton={nativeButton ?? props.render === undefined}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

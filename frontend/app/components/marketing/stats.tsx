@@ -4,6 +4,7 @@ import { SectionHeading } from "@/app/components/marketing/section-heading";
 const STATS = [
   { value: "100,000+", label: "Projects posted" },
   { value: "20,000+", label: "Verified service providers" },
+  { value: "500+", label: "Brands & manufacturers" },
   { value: "95%", label: "Customer satisfaction" },
   { value: "48 hrs", label: "Average time to first quote" },
 ];
@@ -27,7 +28,7 @@ export function Stats() {
           />
         </Reveal>
 
-        <dl className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
+        <dl className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 lg:grid-cols-5">
           {STATS.map((stat, index) => (
             <Reveal key={stat.label} delay={index * 90}>
               <div className="text-center">

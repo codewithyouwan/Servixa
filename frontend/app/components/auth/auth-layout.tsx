@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { AuthPanelCopy } from "@/app/components/auth/auth-panel-copy";
+import { AuthPanelPhoto } from "@/app/components/auth/auth-panel-photo";
+import { Logo, LogoTile } from "@/app/components/shared/logo";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -29,44 +31,45 @@ export function AuthLayout({
   return (
     <main className="grid min-h-dvh grid-cols-1 lg:grid-cols-[1fr_1.1fr]">
       {/* Brand panel */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-space-indigo-950 p-10 text-blue-slate-50 lg:flex xl:p-14">
-        {/* Ambient glows */}
-        <div
-          aria-hidden="true"
-          className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-space-indigo-700/40 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -right-24 -bottom-24 h-96 w-96 rounded-full bg-muted-teal-700/30 blur-3xl"
-        />
+      <aside className="relative hidden flex-col overflow-hidden lg:flex">
+        {/* Real photo backdrop, shown bright and uncovered — reacts to the
+            selected account type on sign-up, defaults to the homeowner
+            shot on Login. */}
+        <AuthPanelPhoto />
 
+        {/* Logo chip floats over the photo, top-left. */}
         <Link
           href="/pages/main"
-          className="relative flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-muted-teal-400/60"
+          className="absolute top-6 left-6 z-10 flex w-fit items-center gap-2 rounded-2xl bg-white/95 py-2 pr-4 pl-2 shadow-md outline-none backdrop-blur-sm focus-visible:ring-3 focus-visible:ring-muted-teal-400/60 xl:top-10 xl:left-10"
           aria-label="BestBuild home"
         >
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted-teal-400 text-sm font-bold text-space-indigo-950"
-          >
-            B
+          <LogoTile size={36} />
+          <span className="text-base font-semibold tracking-tight text-space-indigo-950">
+            Best<span className="text-primary">Build</span>
           </span>
-          <span className="text-lg font-semibold tracking-tight">BestBuild</span>
         </Link>
 
-        <div className="relative max-w-md">
-          {/* Reacts to the selected account type on sign-up (via
-              AccountTypeProvider); renders the static fallbacks on Login. */}
-          <AuthPanelCopy
-            fallbackTitle={panelTitle}
-            fallbackDescription={panelDescription}
-            fallbackPoints={PANEL_POINTS}
+        {/* Solid brand-teal band anchored to the bottom, with a short fade
+            where it meets the photo above — bold and colorful rather than
+            a dark scrim or a floating card in the middle of the photo. */}
+        <div className="relative z-10 mt-auto">
+          <div
+            aria-hidden="true"
+            className="h-20 bg-gradient-to-t from-primary/95 to-transparent"
           />
+          <div className="bg-primary/95 px-8 pt-2 pb-8 backdrop-blur-sm xl:px-12 xl:pb-12">
+            {/* Reacts to the selected account type on sign-up (via
+                AccountTypeProvider); renders the static fallbacks on Login. */}
+            <AuthPanelCopy
+              fallbackTitle={panelTitle}
+              fallbackDescription={panelDescription}
+              fallbackPoints={PANEL_POINTS}
+            />
+            <p className="mt-6 border-t border-white/25 pt-4 text-xs text-white/75">
+              Trusted by homeowners and service providers across the U.S.
+            </p>
+          </div>
         </div>
-
-        <p className="relative text-xs text-blue-slate-400">
-          Trusted by homeowners and service providers across the U.S.
-        </p>
       </aside>
 
       {/* Form side */}
@@ -78,15 +81,7 @@ export function AuthLayout({
             className="mb-8 flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:hidden"
             aria-label="BestBuild home"
           >
-            <span
-              aria-hidden="true"
-              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
-            >
-              B
-            </span>
-            <span className="text-lg font-semibold tracking-tight text-foreground">
-              BestBuild
-            </span>
+            <Logo markSize={32} />
           </Link>
           {children}
         </div>

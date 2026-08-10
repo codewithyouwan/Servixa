@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/app/components/theme/theme-toggle";
+import { Logo } from "@/app/components/shared/logo";
 
 interface NavLink {
   label: string;
@@ -17,6 +18,7 @@ const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/pages/main" },
   { label: "Explore Services", href: "#explore-services" },
   { label: "AI Features", href: "#ai-features" },
+  { label: "For Brands", href: "#for-brands" },
   { label: "Pricing", href: "#pricing" },
   { label: "Careers", href: "/pages/careers" },
 ];
@@ -34,21 +36,12 @@ export function Navbar() {
         aria-label="Main navigation"
         className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
       >
-        {/* Logo placeholder */}
         <Link
           href="/pages/main"
           className="flex items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           aria-label="BestBuild home"
         >
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
-          >
-            B
-          </span>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            BestBuild
-          </span>
+          <Logo markSize={32} />
         </Link>
 
         {/* Desktop links */}

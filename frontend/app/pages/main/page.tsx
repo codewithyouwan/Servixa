@@ -5,6 +5,7 @@ import { Navbar } from "@/app/components/marketing/navbar";
 import { Hero } from "@/app/components/marketing/hero";
 import { FloatingSearchBar } from "@/app/components/marketing/floating-search-bar";
 import { TrustedBy } from "@/app/components/marketing/trusted-by";
+import { TrustGallery } from "@/app/components/marketing/trust-gallery";
 import { AiAssistantPreview } from "@/app/components/marketing/ai-assistant-preview";
 import { HowItWorks } from "@/app/components/marketing/how-it-works";
 import { PopularServices } from "@/app/components/marketing/popular-services";
@@ -13,6 +14,7 @@ import { FeaturedProviders } from "@/app/components/marketing/featured-providers
 import { AiMatchingPreview } from "@/app/components/marketing/ai-matching-preview";
 import { QuoteComparisonPreview } from "@/app/components/marketing/quote-comparison-preview";
 import { DashboardPreview } from "@/app/components/marketing/dashboard-preview";
+import { ForBrands } from "@/app/components/marketing/for-brands";
 import { Testimonials } from "@/app/components/marketing/testimonials";
 import { Stats } from "@/app/components/marketing/stats";
 import { Careers } from "@/app/components/marketing/careers";
@@ -35,6 +37,7 @@ export default function MainPage() {
       <main>
         <Hero />
         <TrustedBy />
+        <TrustGallery />
         <AiAssistantPreview />
         <HowItWorks />
         <PopularServices />
@@ -43,6 +46,7 @@ export default function MainPage() {
         <AiMatchingPreview />
         <QuoteComparisonPreview />
         <DashboardPreview />
+        <ForBrands />
         <Testimonials />
         <Stats />
         <Careers />

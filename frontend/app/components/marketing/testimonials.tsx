@@ -55,24 +55,14 @@ const TESTIMONIALS: Testimonial[] = [
     tone: "bg-blue-slate-100 text-blue-slate-700",
   },
   {
-    initials: "SL",
-    name: "Sofia Lindqvist",
-    role: "Homeowner",
-    company: "Phoenix, AZ",
+    initials: "PS",
+    name: "Priya Shah",
+    role: "Brand Manager",
+    company: "Carrier Home Comfort",
     rating: 5,
     comment:
-      "The project dashboard kept our roof replacement completely transparent — daily photos, milestones, messages. I never once had to ask 'what's happening?'",
+      "Our Brand Profile does the work three people used to do — the catalog stays current, dealers get found, and warranty questions land as tickets instead of scattered emails.",
     tone: "bg-tea-green-100 text-tea-green-800",
-  },
-  {
-    initials: "CB",
-    name: "Carlos Bautista",
-    role: "Founder",
-    company: "SummitPeak Roofing",
-    rating: 5,
-    comment:
-      "We onboarded, got verified, and won our first project in nine days. The AI proposal drafts alone save my office hours every week.",
-    tone: "bg-mineral-teal-100 text-mineral-teal-800",
   },
 ];
 
@@ -130,9 +120,9 @@ export function Testimonials() {
         <Reveal>
           <SectionHeading
             eyebrow="Testimonials"
-            title="Homeowners and pros, both winning"
-            accent="both winning"
-            description="Real outcomes from both sides of the marketplace."
+            title="Homeowners, pros, and brands — all winning"
+            accent="all winning"
+            description="Real outcomes from every side of the marketplace."
           />
         </Reveal>
       </div>

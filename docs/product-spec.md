@@ -555,6 +555,37 @@ shopping.*
 
 -   *Training and certifications*
 
+### **Contractor Portal — Added during implementation** {#contractor-portal-added-during-implementation .unnumbered}
+
+The following MVP behaviors were introduced while building the Service
+Provider CRM dashboard and are now part of the product definition:
+
+**1. Lead Response SLA Indicator** *(Added during implementation)*
+
+Every new lead carries a respond-by deadline (default: 24 hours from
+delivery). The CRM shows a countdown ("Respond within 21h") that turns
+urgent under 6 hours and "overdue" after expiry. Rationale: the
+Marketplace Engine already tracks contractor response time for
+quality-score ranking (§3 Lead Distribution); surfacing the deadline to
+contractors directly improves the marketplace's core response-time
+metric. Backend field: `leads.respond_by` (cleared once the lead is
+accepted or declined).
+
+**2. Quote Win Rate on the Trust Panel** *(Added during implementation)*
+
+The contractor dashboard's Trust Score panel shows quote win rate
+alongside the spec's §5 trust indicators (response rate, completion
+rate, satisfaction). The platform already computes win rate for internal
+analytics (§8 Data Analytics); showing it to contractors drives better
+quoting behavior.
+
+**3. Lead pipeline stages** *(Added during implementation — formalization)*
+
+The Mini CRM "lead pipeline" is formalized as five stages:
+New → Contacted → Quoted → Won / Lost. Accepting a new lead moves it to
+Contacted; declining moves it to Lost. Only new leads can be accepted;
+won/lost leads are terminal.
+
 ## **3. Marketplace Engine** {#marketplace-engine .unnumbered}
 
 ### **AI Matching Engine** {#ai-matching-engine .unnumbered}
