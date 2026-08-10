@@ -1,14 +1,14 @@
 import { Reveal } from "@/app/components/marketing/reveal";
 import { SectionHeading } from "@/app/components/marketing/section-heading";
-import { pexelsPhoto, type TrustAudience } from "@/app/lib/marketing/trust-photos";
+import { sectionPhoto, type TrustAudience } from "@/app/lib/marketing/trust-photos";
 
 /**
  * Section — Trust Gallery: real photography (not illustration) of the three
  * sides of the marketplace, mirroring the "real people" trust cues used by
  * Angi / Thumbtack — kept bright and uncovered (no dark overlay) rather
  * than a moody scrim, so the photos read as upbeat rather than heavy.
- * Same three photos as the hero / auth panel, so the set feels consistent
- * wherever it shows up.
+ * Uses the section-specific photo set (see trust-photos.ts), which is
+ * deliberately different from the hero's photo a few hundred pixels up.
  */
 interface GalleryCard {
   audience: TrustAudience;
@@ -49,7 +49,7 @@ export function TrustGallery() {
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
           {CARDS.map((card, i) => {
-            const photo = pexelsPhoto(card.audience, 800);
+            const photo = sectionPhoto(card.audience, 800);
             return (
               <Reveal key={card.role} delay={i * 100}>
                 <figure className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
