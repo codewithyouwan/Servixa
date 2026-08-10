@@ -19,7 +19,7 @@ export function FileRowActions() {
       >
         <MoreHorizontal />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-36">
+      <DropdownMenuContent className="min-w-36">
         <DropdownMenuItem>
           <Download />
           Download
@@ -29,7 +29,7 @@ export function FileRowActions() {
           Rename
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem className="text-destructive focus:text-destructive [&_svg]:text-destructive">
           <Trash2 />
           Delete
         </DropdownMenuItem>
