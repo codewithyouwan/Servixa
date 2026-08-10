@@ -17,6 +17,13 @@ export default function ProviderLayout({
 }) {
   return (
     <TooltipProvider>
+      {/* Provider portal defaults to dark: apply it before paint unless the
+          user explicitly chose light */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `try{document.documentElement.classList.toggle("dark",localStorage.getItem("bestbuild.theme")!=="light")}catch(e){}`,
+        }}
+      />
       <SidebarProvider>
         <ProviderSidebar />
         <SidebarInset>

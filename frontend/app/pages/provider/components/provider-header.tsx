@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/app/components/theme/theme-toggle";
+import { ProviderThemeToggle } from "./provider-theme-toggle";
 
 const PAGE_TITLES: Record<string, string> = {
   dashboard: "Dashboard",
@@ -45,7 +45,7 @@ export function ProviderHeader() {
           <Bell className="size-4.5" />
           <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-destructive" />
         </Button>
-        <ThemeToggle />
+        <ProviderThemeToggle />
       </div>
     </header>
   );
