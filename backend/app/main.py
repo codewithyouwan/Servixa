@@ -5,16 +5,27 @@ Run locally:
     uvicorn app.main:app --reload --port 8000
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.shared.config import settings
+from db.database import db_manager
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    yield
+    await db_manager.close()
+
 
 app = FastAPI(
     title="BestBuild API",
     version="0.1.0",
     description="AI-powered construction marketplace — MVP backend.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
