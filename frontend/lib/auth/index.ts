@@ -6,7 +6,9 @@
 
 import type { AuthService } from "./auth-service";
 import { DummyAuthService } from "./dummy-auth-service";
+import { JwtAuthService } from "./jwt-auth-service";
 
 export type { AuthService, LoginCredentials } from "./auth-service";
 
-export const authService: AuthService = new DummyAuthService();
+export const authService: AuthService =
+  process.env.NEXT_PUBLIC_API_MODE === "live" ? new JwtAuthService() : new DummyAuthService();

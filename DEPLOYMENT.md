@@ -13,9 +13,13 @@ cp frontend/.env.local.example .env.local
 # Start all services
 docker compose up --build
 
-# Frontend: http://localhost:3000
+# In another terminal, run migrations + seed demo accounts (first time only)
+docker compose run --rm backend uv run alembic upgrade head
+docker compose run --rm backend uv run python -m scripts.seed
+
+# Frontend: http://localhost:3001 (see docker-compose.yml — 3000 is exposed inside the container)
 # Backend: http://localhost:8000/health
-# Database: postgres://bestbuild:dev-password@localhost:5432/bestbuild_db
+# Database: postgres://bestbuild:dev-password@localhost:5432/bestbuild
 # Redis: localhost:6379
 ```
 
@@ -34,8 +38,11 @@ docker compose down -v  # with volume cleanup
 | Variable | Type | Default | Notes |
 |----------|------|---------|-------|
 | `CORS_ORIGINS` | string (CSV) | `http://localhost:3000` | Comma-separated allowed origins, e.g., `https://yourdomain.com,https://api.yourdomain.com` |
-| `JWT_SECRET` | string | `dev-secret-change-me` | **CHANGE IN PRODUCTION**. Use a strong random string (min 32 chars). |
+| `JWT_SECRET` | string | `dev-secret-change-me` | **CHANGE IN PRODUCTION**. Signs real access tokens now — use a strong random string (min 32 chars). |
 | `JWT_ALGORITHM` | string | `HS256` | Token signing algorithm (internal, not configurable yet). |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | int | `60` | Access token lifetime. |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | int | `30` | Refresh token lifetime (revocable — see `refresh_tokens` table). |
+| `DATABASE_URL` | string | `postgresql://bestbuild:dev-password@db:5432/bestbuild` | **Required** — the backend is DB-backed. A bare `postgresql://` scheme is normalized to `postgresql+asyncpg://` automatically. |
 
 ### Frontend (`.env.local` / `next.config.ts`)
 
@@ -43,11 +50,10 @@ docker compose down -v  # with volume cleanup
 |----------|------|---------|-------|
 | `NEXT_PUBLIC_API_URL` | string | (inferred) | Backend API endpoint, e.g., `https://api.yourdomain.com`. Used by browser to call the backend. |
 
-### Optional (for AI features and production DB)
+### Optional (for AI features and background jobs)
 
 | Variable | Type | Example | Notes |
 |----------|------|---------|-------|
-| `DATABASE_URL` | string | `postgresql://user:pass@host:5432/db` | PostgreSQL or TiDB connection. Required for migration to DB-backed backend. |
 | `REDIS_URL` | string | `redis://localhost:6379` | Redis connection for async jobs, caching. |
 | `OPENAI_API_KEY` | string | `sk-...` | OpenAI API key for LLM features. |
 | `ANTHROPIC_API_KEY` | string | `sk-ant-...` | Anthropic API key (alternative to OpenAI). |
@@ -144,7 +150,8 @@ Before going live:
 - [ ] Set strong `JWT_SECRET` (min 32 random chars)
 - [ ] Update `CORS_ORIGINS` to production domain(s)
 - [ ] Set `NEXT_PUBLIC_API_URL` in frontend to production API endpoint
-- [ ] Provision production database (TiDB, PostgreSQL, managed service)
+- [ ] Provision production database (PostgreSQL with the `pgvector` extension available — e.g. Neon, RDS with pgvector, or Timescale)
+- [ ] Run `alembic upgrade head` against production before first deploy
 - [ ] Provision production Redis (if using background jobs)
 - [ ] Set LLM API keys (OpenAI, Anthropic, Azure, etc.)
 - [ ] Enable HTTPS/SSL on backend and frontend
@@ -184,30 +191,40 @@ To enable, add GitHub Secrets in your repo:
 
 ---
 
-## Database Migration (Optional)
+## Database Migration
 
-Currently, the backend runs without a persistent database. To add PostgreSQL or TiDB:
+Done — the backend is DB-backed (SQLAlchemy async ORM models under
+`backend/db/models/`, mirroring `backend/db/schema.sql`) with real JWT auth
+(bcrypt password hashing, signed access tokens, revocable refresh tokens).
+Alembic manages the schema; nothing runs on in-memory mock data anymore.
 
-1. Create `backend/models.py` with SQLAlchemy ORM models
-2. Install database driver: `uv add sqlalchemy psycopg[binary]` (Postgres) or `uv add sqlalchemy pymysql` (TiDB)
-3. Update `backend/app/main.py` to connect to database
-4. Create migrations with Alembic: `alembic init alembic && alembic upgrade head`
-5. Update backend startup to run migrations before server starts
+**Local setup** (after `docker compose up -d db`, or against any Postgres
+with the `pgvector` extension available — the `db` service image is
+`pgvector/pgvector:pg16`, not plain `postgres:16-alpine`):
 
-Example migration trigger in `main.py`:
-```python
-from alembic.config import Config
-from alembic.script import ScriptDirectory
-from alembic.runtime.migration import MigrationContext
-from alembic.operations import Operations
-
-# Run migrations on startup
-alembic_cfg = Config("alembic.ini")
-with engine.begin() as connection:
-    mc = MigrationContext.configure(connection)
-    op = Operations(mc)
-    # op.upgrade() — handled by Alembic CLI
+```bash
+cd backend
+uv sync
+uv run alembic upgrade head        # creates every table
+uv run python -m scripts.seed      # idempotent: countries, categories, 3 demo accounts
 ```
+
+Demo accounts seeded (password `devpassword123` for all): `sarah.mitchell@example.com`
+(homeowner), `marcus@hillcountryroofing.com` (service_provider),
+`priya.shah@carrierhomecomfort.example.com` (brand).
+
+**New env vars** (defaults shown; add to `.env` to override):
+- `ACCESS_TOKEN_EXPIRE_MINUTES=60`
+- `REFRESH_TOKEN_EXPIRE_DAYS=30`
+
+**Creating a new migration** after changing a model:
+```bash
+uv run alembic revision --autogenerate -m "describe the change"
+uv run alembic upgrade head
+```
+
+**In Docker**: `docker compose run --rm backend uv run alembic upgrade head`
+runs migrations against the `db` service using its internal hostname.
 
 ---
 

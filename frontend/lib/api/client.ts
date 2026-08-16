@@ -8,15 +8,13 @@
  */
 
 import type { ApiTransport } from "@/lib/types";
+import { getApiBaseUrl } from "./base-url";
 import { HttpTransport } from "./http-adapter";
 import { MockTransport } from "./mock-adapter";
 
-const API_VERSION_PREFIX = "/api/v1";
-
 function createTransport(): ApiTransport {
   if (process.env.NEXT_PUBLIC_API_MODE === "live") {
-    const origin = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-    return new HttpTransport(`${origin}${API_VERSION_PREFIX}`);
+    return new HttpTransport(getApiBaseUrl());
   }
   return new MockTransport();
 }

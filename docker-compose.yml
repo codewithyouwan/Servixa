@@ -2,8 +2,10 @@ name: servixa
 
 services:
   # PostgreSQL database (alternative to TiDB for local testing)
+  # pgvector/pgvector:pg16 (not plain postgres:16-alpine) — schema.sql's
+  # `CREATE EXTENSION IF NOT EXISTS vector` needs it available in the image.
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     env_file:
       - .env
     environment:

@@ -5,11 +5,27 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- #region ENUMS, DOMAINS & LOOKUPS
 -- ==========================================
 
-CREATE TYPE user_type AS ENUM ('homeowner', 'contractor', 'company');
+-- Aligned with the live API contract (app/shared/schemas/user.py's UserRole)
+-- rather than the other way around: 'admin' is deliberately excluded here —
+-- admins are a separate identity entirely (see the admins table below), not
+-- a users.user_type value.
+CREATE TYPE user_type AS ENUM ('homeowner', 'service_provider', 'brand');
 CREATE TYPE contractor_type AS ENUM ('individual', 'organization');
-CREATE TYPE project_status AS ENUM ('pending', 'in_progress', 'completed', 'delayed', 'cancelled');
+-- Extended beyond the original (pending/in_progress/completed/delayed/cancelled)
+-- to cover the pre-assignment homeowner intake lifecycle that
+-- app/homeowner/schemas/project.py's ProjectStatus already models on the API
+-- side: draft -> pending -> matching -> quoted -> in_progress -> completed,
+-- with delayed/cancelled reachable from in_progress.
+CREATE TYPE project_status AS ENUM (
+    'draft', 'pending', 'matching', 'quoted',
+    'in_progress', 'delayed', 'completed', 'cancelled'
+);
 CREATE TYPE order_status AS ENUM ('ordered', 'in_transit', 'cancelled', 'dispatched', 'completed');
 CREATE TYPE payment_method AS ENUM ('cash', 'online');
+-- Candidate quotes a homeowner receives on a project, pre-acceptance.
+-- Distinct from crm_quote_status (a provider's own CRM drafting/sending
+-- workflow) — see the PROJECTS region below for why this is a separate table.
+CREATE TYPE project_quote_status AS ENUM ('pending', 'received', 'accepted', 'declined', 'expired');
 
 -- Added 'ai_use' for AI/Vector search documents
 -- Added 'invoice', 'photo', 'manual' for the Homeowner Digital Twin;
@@ -54,12 +70,30 @@ CREATE TABLE users (
     user_country VARCHAR(100) NOT NULL REFERENCES countries(code),
     user_addr JSONB NOT NULL,
     user_type user_type NOT NULL,
+    -- Nullable: leaves room for future OAuth-only accounts with no local
+    -- password. A separate credentials table isn't justified while password
+    -- is the only credential type the app supports.
+    password_hash VARCHAR(255),
     is_deleted BOOLEAN DEFAULT FALSE, -- soft delete flag to retain some info of the user (we'll delete data in the dependent tables accordingly but not from this.)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR(255) NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_by uuid
 );
+
+-- Opaque refresh tokens, stored hashed (sha256) so the raw token is never
+-- persisted — lets login issue a revocable session instead of a bare
+-- stateless refresh JWT that can't be invalidated on logout.
+CREATE TABLE refresh_tokens (
+    token_id uuid PRIMARY KEY,
+    user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_refresh_tokens_user ON refresh_tokens (user_id);
 
 CREATE TABLE company (
     company_id uuid PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
@@ -72,7 +106,9 @@ CREATE TABLE company_products (
     product_id uuid PRIMARY KEY,
     company_id uuid REFERENCES company(company_id) ON DELETE CASCADE,
     item_name VARCHAR NOT NULL,
-    item_price DECIMAL(10,2) NOT NULL,
+    -- Nullable: ProductCreate/ProductOut allow price=None ("contact for
+    -- pricing"), a real case the original NOT NULL didn't account for.
+    item_price DECIMAL(10,2),
     item_description TEXT NOT NULL, -- Changed to TEXT to allow rich descriptions for vectorization
     other_details JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -82,14 +118,25 @@ CREATE TABLE company_products (
 );
 
 CREATE TABLE docs (
-    -- doc_id uuid PRIMARY KEY DEFAULT uuidv7(), 
+    -- doc_id uuid PRIMARY KEY DEFAULT uuidv7(),
     doc_id uuid PRIMARY KEY ,
     user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     doc_name VARCHAR(150) NOT NULL,
     doc_type doc_type NOT NULL,
-    doc_url TEXT NOT NULL,
+    doc_url TEXT,
+    file_type VARCHAR(20) NOT NULL DEFAULT 'pdf',
+    -- Category-specific optional fields (tags, vendor, amount, purchase_date,
+    -- order_number, brand, expires_at, linked_appliance, notes, issuer,
+    -- linked_customer, linked_quote_id, linked_product_name — see
+    -- app/{homeowner,service_provider,brand}/schemas for which fields each
+    -- of the three doc-family views actually uses). Same "flexible details"
+    -- convention as company_products.other_details / orders.order_details
+    -- rather than a column per feature per category.
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_docs_user_type ON docs (user_id, doc_type);
 
 CREATE TABLE orders (
     -- order_id uuid PRIMARY KEY DEFAULT uuidv7(), 
@@ -161,30 +208,74 @@ CREATE TABLE user_subscriptions (
 -- #region OPERATIONS (PROJECTS, TASKS, PAYMENTS & RATINGS)
 -- ==========================================
 
+-- `assignee_user_id` is the homeowner who owns/created the project;
+-- `assigned_to_user_id` is the provider assigned to do the work. The latter
+-- (plus quote_price/time_period) is only known once a project moves past the
+-- matching/quoted stage, so — unlike the original design, which assumed a
+-- project row only exists post-assignment — these are nullable and enforced
+-- conditionally below, to also cover the pre-assignment intake lifecycle
+-- (draft/pending/matching/quoted) that app/homeowner/schemas/project.py's
+-- ProjectOut already models on the API side.
 CREATE TABLE projects (
     -- project_id uuid PRIMARY KEY DEFAULT uuidv7(),
     project_id uuid PRIMARY KEY ,
     assignee_user_id uuid NOT NULL REFERENCES users(user_id),
-    assigned_to_user_id uuid NOT NULL REFERENCES users(user_id),
-    quote_price BIGINT NOT NULL, 
+    assigned_to_user_id uuid REFERENCES users(user_id),
+    quote_price BIGINT,
     status project_status DEFAULT 'pending',
+    -- Intake fields (known from creation, before any provider is assigned)
+    title VARCHAR(255) NOT NULL,
+    category_id uuid REFERENCES categories(category_id),
+    description TEXT NOT NULL,
+    budget_min BIGINT,
+    budget_max BIGINT,
+    location VARCHAR(255) NOT NULL,
+    cover_image_url TEXT,
+    progress SMALLINT NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     cancelling_reason VARCHAR(500),
     cancelled_by uuid REFERENCES users(user_id),
     delay_reason VARCHAR(500),
     assigned_at TIMESTAMPTZ DEFAULT NOW(),
     completed_at TIMESTAMPTZ,
     cancelled_at TIMESTAMPTZ,
-    time_period INTERVAL NOT NULL,
-    
+    time_period INTERVAL,
+
     CONSTRAINT chk_cancellation CHECK (
-        (status = 'cancelled' AND cancelling_reason IS NOT NULL AND cancelled_by IS NOT NULL) OR 
+        (status = 'cancelled' AND cancelling_reason IS NOT NULL AND cancelled_by IS NOT NULL) OR
         (status != 'cancelled')
     ),
     CONSTRAINT chk_delay CHECK (
-        (status = 'delayed' AND delay_reason IS NOT NULL) OR 
+        (status = 'delayed' AND delay_reason IS NOT NULL) OR
         (status != 'delayed')
+    ),
+    -- A provider must be assigned (and quote_price/time_period known) once
+    -- work has actually started; not required before that.
+    CONSTRAINT chk_assignment CHECK (
+        status NOT IN ('in_progress', 'delayed', 'completed')
+        OR (assigned_to_user_id IS NOT NULL AND quote_price IS NOT NULL AND time_period IS NOT NULL)
     )
 );
+
+-- Candidate quotes a homeowner receives from providers on a project, before
+-- one is accepted. Deliberately separate from crm_quotes: crm_quotes is a
+-- provider's own CRM drafting/sending workflow keyed by a plain
+-- customer_name (not necessarily a platform account); project_quotes is the
+-- homeowner-side comparison list keyed by real project_id/provider_id FKs.
+-- Accepting one is what eventually populates projects.assigned_to_user_id/
+-- quote_price/time_period (application-layer transition, not a DB trigger).
+CREATE TABLE project_quotes (
+    project_quote_id uuid PRIMARY KEY ,
+    project_id uuid NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    provider_id uuid NOT NULL REFERENCES service_providers(user_id) ON DELETE CASCADE,
+    amount BIGINT NOT NULL,
+    timeline VARCHAR(100),
+    status project_quote_status NOT NULL DEFAULT 'received',
+    submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_project_quotes_project ON project_quotes (project_id);
 
 CREATE TABLE project_tasks (
     -- task_id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -216,6 +307,33 @@ CREATE TABLE ratings (
     rated_at TIMESTAMPTZ DEFAULT NOW(),
     edited_at TIMESTAMPTZ DEFAULT NULL
 );
+
+-- #endregion
+
+-- ==========================================
+-- #region NOTIFICATIONS
+-- ==========================================
+-- Not in the original design — added because app/shared/routers/notifications.py
+-- (GET /notifications, POST /notifications/{id}/read) has no table to read
+-- from otherwise. Kept as its own minimal table, same shape as `docs`, rather
+-- than folded into telemetry_events (that table is analytics, not user-facing).
+
+CREATE TYPE notification_kind AS ENUM (
+    'quote_received', 'message', 'match_found', 'project_update', 'system'
+);
+
+CREATE TABLE notifications (
+    notification_id uuid PRIMARY KEY ,
+    user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    kind notification_kind NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    href TEXT,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_notifications_user ON notifications (user_id, created_at DESC);
 
 -- #endregion
 

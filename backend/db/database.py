@@ -1,4 +1,3 @@
-import os
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -8,12 +7,11 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
-# 1. Fetch connection string (Prefer environment variables)
-# Format: postgresql+asyncpg://user:password@host:port/dbname
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/mydb"
-)
+from app.shared.config import settings
+
+# Settings normalizes a bare `postgresql://` (what docker-compose/.env.example
+# already ship) to the asyncpg driver URL — see app/shared/config.py.
+DATABASE_URL = settings.database_url
 
 # 2. Base class for SQLAlchemy ORM models
 class Base(DeclarativeBase):

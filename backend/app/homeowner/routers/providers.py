@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.shared.dependencies.auth import require_homeowner
+from app.shared.dependencies.db import get_db
 from app.shared.schemas.common import ApiResponse
 from app.homeowner.schemas.provider import RecommendedProviderOut
 from app.shared.schemas.user import UserOut
-from app.homeowner.services import mock_data
+from app.homeowner.services import provider_service
 
 router = APIRouter(prefix="/providers", tags=["providers"])
 
@@ -14,7 +16,9 @@ router = APIRouter(prefix="/providers", tags=["providers"])
     response_model=ApiResponse[list[RecommendedProviderOut]],
     response_model_by_alias=True,
 )
-def recommended_providers(
+async def recommended_providers(
     user: UserOut = Depends(require_homeowner),
+    db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[list[RecommendedProviderOut]]:
-    return ApiResponse(data=mock_data.MOCK_RECOMMENDED_PROVIDERS)
+    providers = await provider_service.list_recommended(db)
+    return ApiResponse(data=providers)
