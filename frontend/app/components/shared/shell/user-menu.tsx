@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function UserMenu({ user, settingsHref }: { user: User; settingsHref: string }) {
+export function UserMenu({ user, settingsHref }: { user: User; settingsHref?: string }) {
   const router = useRouter();
   const { logout } = useAuth();
 
@@ -38,13 +38,17 @@ export function UserMenu({ user, settingsHref }: { user: User; settingsHref: str
           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push(settingsHref)}>
-          <UserRound aria-hidden /> Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push(settingsHref)}>
-          <Settings aria-hidden /> Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {settingsHref && (
+          <>
+            <DropdownMenuItem onClick={() => router.push(settingsHref)}>
+              <UserRound aria-hidden /> Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(settingsHref)}>
+              <Settings aria-hidden /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem
           className="text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive [&_svg]:text-destructive"
           onClick={async () => {

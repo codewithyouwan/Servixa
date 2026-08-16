@@ -47,15 +47,17 @@ export function Sidebar({ config }: { config: ShellConfig }) {
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-3">
-        <Link
-          href={config.settingsHref}
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-        >
-          <Settings className="size-4 shrink-0" aria-hidden />
-          Settings
-        </Link>
-      </div>
+      {config.settingsHref && (
+        <div className="border-t border-sidebar-border p-3">
+          <Link
+            href={config.settingsHref}
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+          >
+            <Settings className="size-4 shrink-0" aria-hidden />
+            Settings
+          </Link>
+        </div>
+      )}
     </aside>
   );
 }

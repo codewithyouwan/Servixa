@@ -8,8 +8,19 @@ import type { ApiErrorBody, ApiSuccess, ApiTransport, RequestOptions } from "@/l
 import { ApiError } from "@/lib/types";
 import { authService } from "@/lib/auth";
 
+/** Supplies the bearer token for a request; may be sync or async. */
+export type TokenProvider = () => Promise<string | null> | string | null;
+
 export class HttpTransport implements ApiTransport {
-  constructor(private readonly baseUrl: string) {}
+  /**
+   * @param getToken Overridable so a module with its own session (the admin
+   * back office, which authenticates for real) can reuse this transport
+   * without going through the app-wide dummy authService.
+   */
+  constructor(
+    private readonly baseUrl: string,
+    private readonly getToken: TokenProvider = () => authService.getAccessToken(),
+  ) {}
 
   async request<T>(path: string, options: RequestOptions = {}): Promise<ApiSuccess<T>> {
     const url = new URL(`${this.baseUrl}${path}`);
@@ -17,7 +28,7 @@ export class HttpTransport implements ApiTransport {
       if (value !== undefined) url.searchParams.set(key, String(value));
     }
 
-    const token = await authService.getAccessToken();
+    const token = await this.getToken();
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers.Authorization = `Bearer ${token}`;
 

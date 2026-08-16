@@ -20,7 +20,8 @@ export interface ShellConfig {
   /** Route treated as the module's index (exact-match highlighting). */
   homeHref: string;
   navItems: NavItem[];
-  settingsHref: string;
+  /** Omit in modules that have no settings page — the link is then hidden. */
+  settingsHref?: string;
   /** Primary action shown in the topbar (optional). */
   cta?: ShellCta;
   /** Overrides the default three-state theme toggle in the topbar. */
