@@ -5,6 +5,8 @@ export const ROUTES = {
   login: "/pages/auth/login",
   signup: "/pages/auth/signup",
   dashboard: "/pages/dashboard",
+  provider: "/pages/provider",
+  brand: "/pages/brand",
   projects: "/pages/dashboard/projects",
   projectNew: "/pages/dashboard/projects/new",
   quotes: "/pages/dashboard/quotes",

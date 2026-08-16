@@ -8,20 +8,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SocialLogin } from "@/app/components/auth/social-login";
+import { authService } from "@/lib/auth";
+import { ApiError } from "@/lib/types";
+import { ROUTES } from "@/lib/constants/routes";
 
-/**
- * Login form card. Visual + client-side state only — backend auth wiring
- * comes later.
- */
+const ROLE_HOME: Record<string, string> = {
+  homeowner: ROUTES.dashboard,
+  service_provider: ROUTES.provider,
+  brand: ROUTES.brand,
+};
+
+/** Login form card, wired to the active AuthService (dummy or real JWT). */
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // TODO: wire to auth API. For now, go to the homeowner dashboard.
-    router.push("/pages/dashboard");
+    setError(null);
+    setSubmitting(true);
+    try {
+      const session = await authService.login({ email, password });
+      router.push(ROLE_HOME[session.user.role] ?? ROUTES.dashboard);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -72,8 +87,14 @@ export function LoginForm() {
           />
         </div>
 
-        <Button type="submit" className="h-11 w-full rounded-lg text-base">
-          Login
+        {error && (
+          <p role="alert" className="text-xs font-medium text-destructive">
+            {error}
+          </p>
+        )}
+
+        <Button type="submit" disabled={submitting} className="h-11 w-full rounded-lg text-base">
+          {submitting ? "Logging in…" : "Login"}
         </Button>
       </form>
 

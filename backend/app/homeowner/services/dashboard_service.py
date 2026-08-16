@@ -69,6 +69,7 @@ async def get_homeowner_dashboard(db: AsyncSession, user: UserOut) -> HomeownerD
         active_projects=active,
         recent_quotes=all_quotes,
         recommended_providers=recommended_providers,
+        recommended_products=[],  # no product-matching engine built yet — see schemas/product.py
         notifications=notifications,
         recent_activity=await _recent_activity(db, homeowner_id),
     )
