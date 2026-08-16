@@ -13,7 +13,16 @@ import { PROVIDER_SHELL } from "@/app/components/provider/nav";
 export default function ProviderLayout({ children }: { children: ReactNode }) {
   return (
     <AuthProvider role="service_provider">
-      <AuthGuard config={PROVIDER_SHELL}>{children}</AuthGuard>
+      {/* Provider portal defaults to dark: apply it before paint unless the
+          user explicitly chose light */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `try{document.documentElement.classList.toggle("dark",localStorage.getItem("bestbuild.theme")!=="light")}catch(e){}`,
+        }}
+      />
+      <AuthGuard config={PROVIDER_SHELL}>
+        <div className="flex flex-col gap-4">{children}</div>
+      </AuthGuard>
     </AuthProvider>
   );
 }

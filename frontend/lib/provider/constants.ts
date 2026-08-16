@@ -11,19 +11,28 @@ import type {
 /** Flat route map for the provider (contractor CRM) module — one page per
  * section, same convention as ROUTES for the homeowner module. */
 export const PROVIDER_ROUTES = {
-  dashboard: "/pages/provider",
-  leads: "/pages/provider/leads",
+  dashboard: "/pages/provider/dashboard",
+  crm: "/pages/provider/crm",
+  projects: "/pages/provider/projects",
+  sales: "/pages/provider/sales",
+  files: "/pages/provider/files",
+  notes: "/pages/provider/notes",
+  chats: "/pages/provider/chats",
+  calendar: "/pages/provider/calendar",
   quotes: "/pages/provider/quotes",
   orders: "/pages/provider/orders",
-  invoices: "/pages/provider/invoices",
-  customers: "/pages/provider/customers",
-  documents: "/pages/provider/documents",
-  messages: "/pages/provider/messages",
   reviews: "/pages/provider/reviews",
   portfolio: "/pages/provider/portfolio",
   assistant: "/pages/provider/assistant",
   profile: "/pages/provider/profile",
   settings: "/pages/provider/settings",
+  // Legacy sections absorbed by the newer CRM module — keep the keys so
+  // existing links keep working, pointed at their replacements.
+  leads: "/pages/provider/crm",
+  customers: "/pages/provider/crm",
+  invoices: "/pages/provider/sales",
+  documents: "/pages/provider/files",
+  messages: "/pages/provider/chats",
 } as const;
 
 interface StatusConfig {

@@ -1,8 +1,9 @@
 # marketplace_agent/subgraphs/intake.py
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import interrupt, Command
-from state import MarketplaceState
-from config import MarketplaceConfig
+# from state import MarketplaceState
+# from config import MarketplaceConfig
+from graph.schemas import MarketplaceState, MarketplaceConfig
 
 def state_manager_node(state: MarketplaceState, config: MarketplaceConfig) -> dict:
     # TODO: 1. Extract pincode and category from latest user message.
