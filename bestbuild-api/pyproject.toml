@@ -1,0 +1,28 @@
+[project]
+name = "bestbuild-api"
+version = "0.1.0"
+description = "BestBuild — AI-powered construction marketplace API (MVP) + marketplace agent"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # `python-dotenv` is what provides the `dotenv` module; the `dotenv` PyPI
+    # package is only a shim around it, and pinning that shim left uv.lock
+    # unresolvable.
+    "python-dotenv>=1.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    # [email] pulls in email-validator, required by the EmailStr fields the
+    # admin schemas use to reject malformed addresses before they hit the DB.
+    "pydantic[email]>=2.8",
+    "langchain>=1.3.14",
+    "langchain-groq>=1.1.3",
+    "langgraph>=1.2.9",
+    # Admin module: Postgres access via Supabase PostgREST, password hashing,
+    # and our own HS256 session tokens.
+    "supabase>=2.10",
+    "argon2-cffi>=23.1.0",
+    "pyjwt>=2.9",
+]
+
+[tool.uv]
+# Managed with uv: `uv sync` then `uv run uvicorn app.main:app --reload`

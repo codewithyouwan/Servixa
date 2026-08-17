@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "frontend",
       "port": 3000
+    },
+    {
+      "name": "servixa-api",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "uvicorn", "app.main:app", "--reload", "--port", "8000"],
+      "cwd": "bestbuild-api",
+      "port": 8000
     }
   ]
 }
