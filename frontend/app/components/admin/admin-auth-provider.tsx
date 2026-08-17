@@ -49,15 +49,21 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
     probe
       .then((current) => {
-        if (!controller.signal.aborted) setAdmin(current);
+        if (controller.signal.aborted) return;
+        setAdmin(current);
+        setLoading(false);
       })
       .catch(() => {
-        // Expired, revoked, or disabled — drop the stale token.
+        // A cancelled probe rejects too (AbortController.abort → AbortError).
+        // In React 19's dev StrictMode the provider mounts, aborts, and
+        // remounts, so the aborted first probe MUST NOT touch the session —
+        // clearing it here would wipe the freshly-stored token from login and
+        // instantly log the admin back out. Only treat real server failures
+        // (expired/revoked/disabled) as "drop the stale token".
+        if (controller.signal.aborted) return;
         adminSession.clear();
-        if (!controller.signal.aborted) setAdmin(null);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
+        setAdmin(null);
+        setLoading(false);
       });
 
     return () => controller.abort();
