@@ -23,9 +23,9 @@ from app.shared.schemas.common import ApiResponse
 from app.shared.schemas.user import UserOut
 from db.database import get_db
 
-# app/homeowner/routers/ai_assistant.py -> routers -> homeowner -> app -> backend, then + marketplace_agent
+# app/homeowner/routers/ai_assistant.py -> routers -> homeowner -> app -> backend
 _MARKETPLACE_AGENT_ROOT = (
-    Path(__file__).resolve().parent.parent.parent.parent.parent / "marketplace_agent"
+    Path(__file__).resolve().parent.parent.parent.parent / "marketplace_agent"
 )
 if str(_MARKETPLACE_AGENT_ROOT) not in sys.path:
     sys.path.insert(0, str(_MARKETPLACE_AGENT_ROOT))
