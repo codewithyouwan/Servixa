@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from contextlib import asynccontextmanager
 from sqlalchemy.orm import DeclarativeBase
 
 # 1. Fetch connection string (Prefer environment variables)
@@ -48,6 +49,20 @@ class DatabaseManager:
     async def close(self) -> None:
         """Gracefully close the engine connection pool on app shutdown."""
         await self._engine.dispose()
+
+    @asynccontextmanager
+    async def session_scope(self):
+        """Same commit/rollback contract as get_db_session, for callers
+        outside FastAPI's request-scoped Depends() — e.g. the
+        marketplace_agent LangGraph nodes, which run inside a graph
+        invocation rather than a single HTTP request."""
+        async with self._session_maker() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
 
     async def get_db_session(self) -> AsyncGenerator[AsyncSession, None]:
         """Async generator providing scoped DB sessions per request."""

@@ -8,7 +8,15 @@ all of them.
 from fastapi import APIRouter
 
 from app.brand.routers import brand
-from app.homeowner.routers import dashboard, documents, projects, providers, quotes, service_records
+from app.homeowner.routers import (
+    ai_assistant,
+    dashboard,
+    documents,
+    projects,
+    providers,
+    quotes,
+    service_records,
+)
 from app.service_provider.routers import crm
 from app.shared.routers import auth, notifications, users
 
@@ -21,6 +29,7 @@ api_router.include_router(notifications.router)
 
 # Homeowner module
 api_router.include_router(dashboard.router)
+api_router.include_router(ai_assistant.router)
 api_router.include_router(projects.router)
 api_router.include_router(quotes.router)
 api_router.include_router(providers.router)

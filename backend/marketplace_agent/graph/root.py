@@ -1,106 +1,155 @@
 # marketplace_agent/root.py
+"""Root graph: thin session orchestrator wiring security -> routing_qa ->
+intake -> business. See implementation_details.md section 3.1 for the
+node spec this implements, and section 2 for the overall flow.
+"""
+
+import logging
+
+from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import interrupt, Command
-# from state import MarketplaceState
-# from config import MarketplaceConfig
+from langgraph.types import interrupt
+
 from .schemas import MarketplaceState, MarketplaceConfig
 from subgraphs.security import build_security_subgraph
 from subgraphs.routing_qa import build_routing_qa_subgraph
 from subgraphs.intake import build_intake_subgraph
 from subgraphs.business import build_business_subgraph
 
-def session_gate_node(state: MarketplaceState, config: MarketplaceConfig) -> dict:
-    # TODO: 1. Check if state["terminated"] is True. If so, return update to route to session_closed.
-    # TODO: 2. If this is a resume from an interrupt, extract the user's reply from the Command resume value.
-    # TODO: 3. Append the new user message to state["user_messages"].
-    # TODO: 4. Log context: thread_id, user_id, resume_target.
-    # TODO: 5. Clear resume_target after processing.
-    ...
+log = logging.getLogger(__name__)
+
+_TERMINATION_MESSAGES = {
+    "injection": (
+        "This conversation has been closed for a security violation and "
+        "can't be continued. If you think this was a mistake, please "
+        "contact support."
+    ),
+    "fatal_threat": (
+        "This conversation has been closed due to content that violates "
+        "our usage policy. If you think this was a mistake, please "
+        "contact support."
+    ),
+    "security_strikes": (
+        "This conversation has been closed after repeated policy "
+        "violations. Please start a new request, keeping it focused on "
+        "your project."
+    ),
+    "offtopic_strikes": (
+        "This conversation has been closed after repeated off-topic "
+        "messages. Please start a new request when you're ready to talk "
+        "about your project."
+    ),
+}
+_DEFAULT_TERMINATION_MESSAGE = (
+    "This conversation has been closed and can't be continued. Please "
+    "start a new request."
+)
+
+
+def _configurable(config: RunnableConfig) -> dict:
+    return config.get("configurable", {}) if config else {}
+
+
+def session_gate_node(state: MarketplaceState, config: RunnableConfig) -> dict:
+    cfg = _configurable(config)
+    log.info(
+        "session_gate: thread=%s user=%s resume_target=%s terminated=%s",
+        cfg.get("thread_id"), cfg.get("user_id"),
+        state.get("resume_target"), state.get("terminated"),
+    )
+    if state.get("terminated"):
+        return {}
+    # The latest user message is already in state["user_messages"] by the
+    # time we get here — either from the initiating invoke() for a fresh
+    # turn, or appended by the `update` on the Command(graph=PARENT) that
+    # bubbled a subgraph's interrupt resume back to this node (I1:
+    # Universal Re-moderation — every resume re-enters here and gets
+    # re-classified by the security subgraph before anything else runs).
+    return {"resume_target": None}
+
 
 def session_closed_node(state: MarketplaceState) -> dict:
-    # TODO: 1. Map state["termination_reason"] to a user-friendly final message.
-    # TODO: 2. Set state["final_response"] with the termination message.
-    # TODO: 3. Do not call any tools. Just return the update to hit END.
-    ...
+    reason = state.get("termination_reason")
+    message = _TERMINATION_MESSAGES.get(reason, _DEFAULT_TERMINATION_MESSAGE)
+    return {"final_response": message}
+
 
 def await_next_node(state: MarketplaceState) -> dict:
-    # TODO: 1. Call interrupt() with a generic "waiting for next request" payload.
-    # TODO: 2. On resume, the graph will restart at START -> session_gate automatically.
-    # TODO: 3. Return empty dict or update resume_target if needed.
     user_reply = interrupt({"type": "await_next", "prompt": "How can I help you next?"})
     return {"user_messages": [user_reply]}
 
+
 # --- Root Routers ---
+
 def route_after_gate(state: MarketplaceState) -> str:
-    # TODO: If state.get("terminated") -> "session_closed", else -> "security"
-    ...
+    return "session_closed" if state.get("terminated") else "security"
+
 
 def route_after_security(state: MarketplaceState) -> str:
-    # TODO: If state.get("terminated") -> END (banned)
-    # TODO: Else (passed) -> "routing_qa"
-    ...
+    return END if state.get("terminated") else "routing_qa"
+
 
 def route_after_routing_qa(state: MarketplaceState) -> str:
-    # TODO: Read state["routing_qa_exit"]. 
-    # TODO: If "idle" -> "await_next". If "to_intake" -> "intake".
-    ...
+    return "intake" if state.get("routing_qa_exit") == "to_intake" else "await_next"
+
 
 def route_after_intake(state: MarketplaceState) -> str:
-    # TODO: Read state["intake_exit"]. 
-    # TODO: If "error" -> END (error logged). If "complete" -> "business".
-    ...
+    return "business" if state.get("intake_exit") == "complete" else END
+
 
 def route_after_business(state: MarketplaceState) -> str:
-    # TODO: Read state["business_exit"].
-    # TODO: If "done" or "error" -> END.
-    ...
+    return END
+
 
 def build_root_graph():
     builder = StateGraph(MarketplaceState, config_schema=MarketplaceConfig)
 
-    # Add Root Nodes
+    # Root Nodes
     builder.add_node("session_gate", session_gate_node)
     builder.add_node("session_closed", session_closed_node)
     builder.add_node("await_next", await_next_node)
 
-    # Add Subgraphs as Nodes
+    # Subgraphs as Nodes
     builder.add_node("security", build_security_subgraph())
     builder.add_node("routing_qa", build_routing_qa_subgraph())
     builder.add_node("intake", build_intake_subgraph())
     builder.add_node("business", build_business_subgraph())
 
-    # Wire Root Edges
+    # Root Edges
     builder.add_edge(START, "session_gate")
-    
+
     builder.add_conditional_edges("session_gate", route_after_gate, {
         "session_closed": "session_closed",
-        "security": "security"
+        "security": "security",
     })
     builder.add_edge("session_closed", END)
 
     builder.add_conditional_edges("security", route_after_security, {
         END: END,
-        "routing_qa": "routing_qa"
+        "routing_qa": "routing_qa",
     })
 
     builder.add_conditional_edges("routing_qa", route_after_routing_qa, {
         "await_next": "await_next",
-        "intake": "intake"
+        "intake": "intake",
     })
-    
-    # await_next interrupts. On resume, it goes back to START -> session_gate.
-    # No explicit edge needed from await_next to END, it pauses and resumes at root START.
+
+    # await_next interrupts; on resume it re-runs this node (standard
+    # LangGraph interrupt/resume semantics), which then falls through to
+    # this edge and re-enters the gate for re-moderation (I1).
+    builder.add_edge("await_next", "session_gate")
 
     builder.add_conditional_edges("intake", route_after_intake, {
         END: END,
-        "business": "business"
+        "business": "business",
     })
 
     builder.add_conditional_edges("business", route_after_business, {
-        END: END
+        END: END,
     })
 
-    # TODO: Replace MemorySaver with PostgresSaver for production persistence
+    # TODO: Replace MemorySaver with PostgresSaver for production
+    # persistence (in-memory checkpoints don't survive a backend restart).
     checkpointer = MemorySaver()
     return builder.compile(checkpointer=checkpointer)
