@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SocialLogin } from "@/app/components/auth/social-login";
 import { authService } from "@/lib/auth";
+import { dashboardPathForRole } from "@/lib/auth/dashboard-path";
 import { ApiError } from "@/lib/types";
 
 /**
@@ -28,8 +29,8 @@ export function LoginForm() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await authService.login({ email, password });
-      router.push("/pages/dashboard");
+      const session = await authService.login({ email, password });
+      router.push(dashboardPathForRole(session.user.role));
     } catch (err) {
       if (err instanceof ApiError && err.code === "UserNotConfirmedException") {
         setError("Please confirm your email before logging in — check your inbox for the code.");

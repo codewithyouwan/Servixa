@@ -25,6 +25,7 @@ import {
   saveZip,
 } from "@/app/components/search/zip-selector";
 import { authService, type SelfServeRole } from "@/lib/auth";
+import { dashboardPathForRole } from "@/lib/auth/dashboard-path";
 import { ApiError } from "@/lib/types";
 
 // AccountType (UI, hyphenated) -> SelfServeRole (API/DB, underscored).
@@ -109,8 +110,8 @@ export function SignupForm() {
         setStep(3);
       } else {
         // Mock mode: no confirmation needed, log straight in.
-        await authService.login({ email, password });
-        router.push("/pages/main");
+        const session = await authService.login({ email, password });
+        router.push(dashboardPathForRole(session.user.role));
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "UsernameExistsException") {
@@ -136,8 +137,8 @@ export function SignupForm() {
     try {
       await authService.confirmRegistration(email, code.trim());
       // Confirmed — log in immediately with the credentials already entered.
-      await authService.login({ email, password });
-      router.push("/pages/main");
+      const session = await authService.login({ email, password });
+      router.push(dashboardPathForRole(session.user.role));
     } catch (err) {
       if (err instanceof ApiError && err.code === "CodeMismatchException") {
         setError("That code doesn't match. Double-check your email and try again.");
