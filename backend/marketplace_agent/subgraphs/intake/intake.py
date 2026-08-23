@@ -33,8 +33,12 @@ from .tools import (
     load_service_specs,
 )
 
-EXTRACTION_MODEL = "openai/gpt-oss-20b"   # small: pincode/category extraction
-FIELD_MODEL = "llama-3.3-70b-versatile"   # larger: open-ended slot extraction
+EXTRACTION_MODEL = "openai/gpt-oss-20b"  # pincode/category extraction
+# The only other Groq production text model, openai/gpt-oss-120b, has a
+# documented langchain-groq structured-output bug (langchain-ai/langchain
+# issue 34155) -- using the same smaller model for slot extraction until
+# that is resolved or a larger model is verified compatible.
+FIELD_MODEL = "openai/gpt-oss-20b"       # open-ended slot extraction
 
 
 # --- Structured output schemas ---

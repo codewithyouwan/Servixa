@@ -17,7 +17,7 @@ Usage:
     from .client import LLMClient
 
     client = LLMClient(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-20b",
         system_prompt="You are a moderation model...",
         tools=[my_tool],          # optional, @tool-decorated or BaseTool
         temperature=0.0,
@@ -69,7 +69,7 @@ class LLMClientError(Exception):
 class LLMClient:
     def __init__(
         self,
-        model: str = "llama-3.3-70b-versatile",
+        model: str = "openai/gpt-oss-20b",
         system_prompt: str | None = None,
         tools: Sequence[BaseTool | Callable] | None = None,
         temperature: float = 0.0,

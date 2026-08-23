@@ -25,8 +25,12 @@ from .prompts import (
 )
 from .tools import retrieve_snippets, format_snippets
 
-ROUTER_MODEL = "openai/gpt-oss-20b"       # small: 3-way classification
-QA_MODEL = "llama-3.3-70b-versatile"      # large: user-facing answers
+ROUTER_MODEL = "openai/gpt-oss-20b"  # 3-way classification
+# The only other Groq production text model, openai/gpt-oss-120b, has a
+# documented langchain-groq structured-output bug (langchain-ai/langchain
+# issue 34155) -- both classification and QA use the smaller model until
+# that is resolved or a larger model is verified compatible.
+QA_MODEL = "openai/gpt-oss-20b"      # user-facing answers
 
 
 # --- Structured output schemas ---
