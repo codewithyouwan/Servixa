@@ -47,7 +47,7 @@ export default function HomeownerDashboardPage() {
       </div>
 
       <RecommendedProviders providers={data.recommendedProviders} />
-      <RecommendedProducts products={data.recommendedProducts} />
+      <RecommendedProducts products={data.recommendedProducts ?? []} />
     </div>
   );
 }

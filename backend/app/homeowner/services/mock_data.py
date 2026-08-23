@@ -8,6 +8,7 @@ from app.shared.mock_users import days_ago, hours_ago
 from app.shared.schemas.notification import ActivityOut
 from app.homeowner.schemas.document import DocumentOut
 from app.homeowner.schemas.project import ProjectOut
+from app.homeowner.schemas.product import RecommendedProductOut
 from app.homeowner.schemas.provider import RecommendedProviderOut
 from app.homeowner.schemas.quote import QuoteOut
 from app.homeowner.schemas.service_record import ServiceRecordOut
@@ -163,6 +164,75 @@ MOCK_RECOMMENDED_PROVIDERS: list[RecommendedProviderOut] = [
         response_time="~5 hrs",
         match_score=81,
         match_reason="Specializes in paver patios within your budget",
+    ),
+]
+
+MOCK_RECOMMENDED_PRODUCTS: list[RecommendedProductOut] = [
+    RecommendedProductOut(
+        id="prod-rec-01",
+        brand_id="brand-01",
+        brand_name="Carrier Home Comfort",
+        name="Infinity 30\" Convection Wall Oven",
+        category="wall-ovens",
+        price=2199,
+        image_url=None,
+        match_score=92,
+        match_reason="Fits the Kitchen Renovation cutout and matches your energy-efficient picks",
+    ),
+    RecommendedProductOut(
+        id="prod-rec-02",
+        brand_id="brand-02",
+        brand_name="Bosch Home Appliances",
+        name="800 Series Induction Cooktop",
+        category="cooktops",
+        price=1849,
+        image_url=None,
+        match_score=90,
+        match_reason="Induction pairs well with your quartz countertop selection",
+    ),
+    RecommendedProductOut(
+        id="prod-rec-03",
+        brand_id="brand-03",
+        brand_name="Zephyr Ventilation",
+        name="Anzio 36\" Under-Cabinet Range Hood",
+        category="range-hoods",
+        price=749,
+        image_url=None,
+        match_score=88,
+        match_reason="Sized for a 36\" cooktop with 600 CFM ducted venting",
+    ),
+    RecommendedProductOut(
+        id="prod-rec-04",
+        brand_id="brand-04",
+        brand_name="Broan-NuTone",
+        name="AER Series Bath Fan & Blower",
+        category="fans-and-blowers",
+        price=189,
+        image_url=None,
+        match_score=85,
+        match_reason="Quiet 1.5-sone operation for the primary bath refresh on your list",
+    ),
+    RecommendedProductOut(
+        id="prod-rec-05",
+        brand_id="brand-05",
+        brand_name="LG Electronics",
+        name="InstaView 27 cu ft French Door Fridge",
+        category="fridges",
+        price=2649,
+        image_url=None,
+        match_score=87,
+        match_reason="Depth matches the existing fridge alcove; ENERGY STAR certified",
+    ),
+    RecommendedProductOut(
+        id="prod-rec-06",
+        brand_id="brand-06",
+        brand_name="Samsung Home",
+        name="Bespoke Over-the-Range Microwave",
+        category="microwaves",
+        price=549,
+        image_url=None,
+        match_score=82,
+        match_reason="Panel-ready front lets you match your new cabinet finish",
     ),
 ]
 

@@ -32,6 +32,7 @@ def get_homeowner_dashboard(user: UserOut) -> HomeownerDashboardOut:
             mock_data.MOCK_QUOTES, key=lambda q: q.submitted_at, reverse=True
         ),
         recommended_providers=mock_data.MOCK_RECOMMENDED_PROVIDERS,
+        recommended_products=mock_data.MOCK_RECOMMENDED_PRODUCTS,
         notifications=mock_users.MOCK_NOTIFICATIONS,
         recent_activity=mock_data.MOCK_ACTIVITY,
     )
