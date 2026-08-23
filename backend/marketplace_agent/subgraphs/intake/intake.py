@@ -131,9 +131,23 @@ def state_manager_node(state: MarketplaceState, config: RunnableConfig) -> dict:
     else:
         pincode, pincode_valid = None, False
 
-    category_raw = extraction.category_raw
-    if category_raw is None and not pivoting:
+    # A category that's already resolved should only change on a genuine
+    # pivot (routing_qa's context_router explicitly classified this
+    # message as "pivoting") -- NOT whenever the per-turn extraction call
+    # happens to return something non-null. Extraction runs on every
+    # turn's message in isolation, so a reply that's just a ZIP code or
+    # an unrelated aside (no category content at all) can still get a
+    # stray non-null guess back from the model; without this guard that
+    # silently overwrites an already-resolved category with noise and
+    # sends the user back to "which category do you need?" after they'd
+    # already answered it.
+    already_resolved = state.get("category_status") == "resolved" and not pivoting
+    if already_resolved:
         category_raw = state.get("category")
+    else:
+        category_raw = extraction.category_raw
+        if category_raw is None and not pivoting:
+            category_raw = state.get("category")
 
     update["pincode"] = pincode
     update["pincode_valid"] = pincode_valid
