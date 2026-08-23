@@ -14,6 +14,7 @@ import { AiAssistantCard } from "@/app/components/dashboard/ai-assistant-card";
 import { RecentQuotes } from "@/app/components/dashboard/recent-quotes";
 import { ActivityFeed } from "@/app/components/dashboard/activity-feed";
 import { RecommendedProviders } from "@/app/components/dashboard/recommended-providers";
+import { RecommendedProducts } from "@/app/components/dashboard/recommended-products";
 import { DashboardSkeleton, ErrorState } from "@/app/components/shared/states";
 
 export default function HomeownerDashboardPage() {
@@ -46,6 +47,7 @@ export default function HomeownerDashboardPage() {
       </div>
 
       <RecommendedProviders providers={data.recommendedProviders} />
+      <RecommendedProducts products={data.recommendedProducts} />
     </div>
   );
 }
