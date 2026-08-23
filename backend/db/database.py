@@ -30,6 +30,13 @@ class DatabaseManager:
             pool_timeout=30,      # Seconds to wait before throwing a timeout error
             pool_recycle=1800,    # Recycle connections every 30 mins to avoid stale sockets
             echo=False,           # Set to True for SQL query debugging
+            # asyncpg doesn't understand libpq's "sslmode" URL param (unlike
+            # psycopg2) — SSL has to be configured here instead. "prefer"
+            # mirrors libpq's default: use SSL when the server offers it
+            # (RDS enforces this via rds.force_ssl=1), fall back to plain
+            # when it doesn't (local dev Postgres, which usually has no SSL
+            # configured at all) — so this one setting works in both places.
+            connect_args={"ssl": "prefer"},
         )
         self._session_maker = async_sessionmaker(
             bind=self._engine,
@@ -54,3 +61,6 @@ class DatabaseManager:
 
 # Export a single global instance
 db_manager = DatabaseManager(DATABASE_URL)
+
+# FastAPI dependency alias — use as `Depends(get_db)` in routers.
+get_db = db_manager.get_db_session

@@ -5,7 +5,11 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- #region ENUMS, DOMAINS & LOOKUPS
 -- ==========================================
 
-CREATE TYPE user_type AS ENUM ('homeowner', 'contractor', 'company');
+CREATE TYPE user_type AS ENUM ('homeowner', 'service_provider', 'brand');
+-- Renamed from ('homeowner','contractor','company') to match the rest of
+-- the codebase (app/service_provider, app/brand, UserRole in
+-- app/shared/schemas/user.py) instead of adding a translation layer at
+-- the API boundary. See docs/architecture/08-aws-mvp-setup-guide.md.
 CREATE TYPE contractor_type AS ENUM ('individual', 'organization');
 CREATE TYPE project_status AS ENUM ('pending', 'in_progress', 'completed', 'delayed', 'cancelled');
 CREATE TYPE order_status AS ENUM ('ordered', 'in_transit', 'cancelled', 'dispatched', 'completed');
@@ -48,11 +52,16 @@ CREATE INDEX idx_countries_currency ON countries (currency_code);
 
 CREATE TABLE users (
     -- user_id uuid PRIMARY KEY DEFAULT uuidv7(),
+    -- Primary key is the Cognito `sub` claim (also a UUID) — no separate
+    -- cognito_sub column needed, the identity IS the row's PK.
     user_id uuid PRIMARY KEY,
     user_name VARCHAR(100) NOT NULL,
     user_email VARCHAR(255) NOT NULL UNIQUE,
-    user_country VARCHAR(100) NOT NULL REFERENCES countries(code),
-    user_addr JSONB NOT NULL,
+    -- Made nullable: Cognito sign-up only collects email/password/name.
+    -- Address/country are filled in during profile completion, not at
+    -- signup — see docs/architecture/08-aws-mvp-setup-guide.md.
+    user_country VARCHAR(100) REFERENCES countries(code),
+    user_addr JSONB,
     user_type user_type NOT NULL,
     is_deleted BOOLEAN DEFAULT FALSE, -- soft delete flag to retain some info of the user (we'll delete data in the dependent tables accordingly but not from this.)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

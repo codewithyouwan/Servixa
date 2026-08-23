@@ -29,5 +29,7 @@ class UserOut(CamelModel):
     email: str
     role: UserRole
     avatar_url: str | None = None
-    address: UserAddress
+    # Optional: address is collected during profile completion, not at
+    # signup (users.user_addr is nullable — see db/schema.sql).
+    address: UserAddress | None = None
     created_at: str

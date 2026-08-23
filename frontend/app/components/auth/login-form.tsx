@@ -8,20 +8,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SocialLogin } from "@/app/components/auth/social-login";
+import { authService } from "@/lib/auth";
+import { ApiError } from "@/lib/types";
 
 /**
- * Login form card. Visual + client-side state only — backend auth wiring
- * comes later.
+ * Login form card. Wired to authService (live: FastAPI/Cognito via
+ * JwtAuthService, mock: DummyAuthService) — which implementation runs is
+ * chosen once in lib/auth/index.ts and is invisible to this component.
  */
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // TODO: wire to auth API. For now, go to the homeowner dashboard.
-    router.push("/pages/dashboard");
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await authService.login({ email, password });
+      router.push("/pages/dashboard");
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "UserNotConfirmedException") {
+        setError("Please confirm your email before logging in — check your inbox for the code.");
+      } else if (err instanceof ApiError) {
+        setError(err.message || "Login failed. Check your email and password.");
+      } else {
+        setError("Couldn't reach the server. Is the backend running?");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -72,8 +91,14 @@ export function LoginForm() {
           />
         </div>
 
-        <Button type="submit" className="h-11 w-full rounded-lg text-base">
-          Login
+        {error && (
+          <p role="alert" className="text-sm font-medium text-destructive">
+            {error}
+          </p>
+        )}
+
+        <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-lg text-base">
+          {isSubmitting ? "Logging in…" : "Login"}
         </Button>
       </form>
 

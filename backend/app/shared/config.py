@@ -10,8 +10,17 @@ class Settings:
         self.cors_origins: list[str] = os.getenv(
             "CORS_ORIGINS", "http://localhost:3000"
         ).split(",")
-        self.jwt_secret: str = os.getenv("JWT_SECRET", "dev-secret-change-me")
-        self.jwt_algorithm: str = "HS256"
+
+        # AWS Cognito — see docs/architecture/08-aws-mvp-setup-guide.md.
+        # No JWT_SECRET/jwt_algorithm anymore: Cognito signs tokens with
+        # its own RSA key pair, verified against its public JWKS instead
+        # of a shared secret (app/shared/security/jwt.py).
+        self.aws_region: str = os.getenv("AWS_REGION", "us-east-1")
+        self.cognito_user_pool_id: str = os.getenv("COGNITO_USER_POOL_ID", "")
+        self.cognito_app_client_id: str = os.getenv("COGNITO_APP_CLIENT_ID", "")
+        self.cognito_app_client_secret: str = os.getenv(
+            "COGNITO_APP_CLIENT_SECRET", ""
+        )
 
 
 settings = Settings()
