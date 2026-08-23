@@ -40,3 +40,37 @@ vs. not reached yet.
 |---|---|---|
 | Zero-spend budget | Created, $1/month threshold | Tripwire so any unexpected charge emails immediately, while still on free tier + credits. Confirmed live via AWS CLI: `ActualSpend: $0.00` as of 2026-08-22. |
 | Monthly cost budget (~$20-30) | _pending_ | Soft ceiling for once real charges start (mainly RDS). |
+
+## First feature moved off mock data: Post a Project (2026-08-23)
+
+Rolling dashboard/project features off mock data one at a time, starting
+with project posting (homeowner-facing "Post a Project" form).
+
+**Schema drift found and fixed:** `db/schema.sql`'s `projects` table was
+built for an *already-matched* job — `assigned_to_user_id` and
+`quote_price` were `NOT NULL`, meaning a row couldn't exist before a
+contractor was assigned and priced. That can't represent "a homeowner
+posts a project" (the actual first step — matching/quoting comes after).
+`docs/architecture/02-database-schema.md`'s `projects` spec already had
+the right shape (title/category/description/budget/location, status
+`draft→open→matched→...`); `schema.sql` had drifted from it, and no code
+existed yet to depend on the drifted version.
+
+Fixed via `backend/db/migrations/001_projects_intake.sql` (see file for
+full SQL): relaxed `assigned_to_user_id`/`quote_price`/`time_period` to
+nullable, added the intake columns, extended `project_status` with
+`draft`/`matching`/`quoted` to match the frontend's existing
+`ProjectStatus` type. Run manually via `psql` (no Alembic yet — still the
+known gap noted above; this was the "next schema change" that entry
+flagged, and Alembic is still the right call before the one after this).
+
+**App-layer change:** added a real `Project` SQLAlchemy model
+(`backend/db/models.py`) and `db/repository/projects.py`, following the
+existing `users` pattern. `POST/GET /projects` and the dashboard's
+`active_projects` now read/write the real table instead of
+`mock_data.MOCK_PROJECTS`. Quotes, recommended providers, notifications,
+and activity are still mock — next slices to convert, same pattern.
+
+**To apply:** run `backend/db/migrations/001_projects_intake.sql`
+against the `bestbuild` database via `psql` (same connection string as
+the original schema/seed apply), then restart the backend.
