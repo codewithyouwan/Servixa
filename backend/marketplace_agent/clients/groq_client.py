@@ -35,6 +35,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 import os
+import re
 from pydantic import SecretStr
 import random
 import time
@@ -62,6 +63,31 @@ logger = logging.getLogger(__name__)
 _RETRYABLE_EXCEPTIONS = (RateLimitError, APITimeoutError, APIConnectionError)
 
 
+_RETRY_AFTER_RE = re.compile(r"try again in ([\d.]+)s")
+
+
+def _retry_after_seconds(exc: Exception) -> float | None:
+    """Best-effort read of how long Groq wants us to wait before
+    retrying a 429. Prefers the Retry-After response header; falls
+    back to parsing it out of the error body's 'try again in N.Ns'
+    text, since that's what Groq actually returns today."""
+    response = getattr(exc, "response", None)
+    if response is not None:
+        header = getattr(response, "headers", {}).get("retry-after")
+        if header:
+            try:
+                return float(header)
+            except (TypeError, ValueError):
+                pass
+    match = _RETRY_AFTER_RE.search(str(exc))
+    if match:
+        try:
+            return float(match.group(1))
+        except ValueError:
+            pass
+    return None
+
+
 class LLMClientError(Exception):
     """Raised when the client exhausts retries or hits a non-retryable error."""
 
@@ -76,6 +102,7 @@ class LLMClient:
         max_tokens: int | None = None,
         max_retries: int = 3,
         retry_base_delay: float = 1.0,
+        max_rate_limit_retries: int = 6,
         max_tool_rounds: int = 5,
         api_key: str | None = None,
         structured_method: str | None = None,
@@ -87,8 +114,13 @@ class LLMClient:
             system_prompt: Prepended as a SystemMessage to every call.
             tools: Tools the model may call; executed automatically in a loop.
             temperature / max_tokens / model_kwargs: Passed through to ChatGroq.
-            max_retries: Attempts per API call before giving up.
+            max_retries: Attempts per API call before giving up (non-rate-limit
+                errors: timeouts, connection errors, malformed tool args).
             retry_base_delay: First backoff delay in seconds (doubles each retry).
+            max_rate_limit_retries: Attempts specifically for 429 rate-limit
+                responses. Kept separate and higher than max_retries because Groq
+                tells us how long to wait (see _retry_after_seconds) -- waiting is
+                cheap and (unlike a real error) guaranteed to eventually succeed.
             max_tool_rounds: Cap on tool-call round trips per invoke().
             api_key: Overrides the GROQ_API_KEY env var.
             structured_method: How with_structured_output enforces the schema.
@@ -106,6 +138,7 @@ class LLMClient:
         self.system_prompt = system_prompt
         self.max_retries = max_retries
         self.retry_base_delay = retry_base_delay
+        self.max_rate_limit_retries = max_rate_limit_retries
         self.max_tool_rounds = max_tool_rounds
         self.structured_method = structured_method
 
@@ -207,9 +240,30 @@ class LLMClient:
 
     def _call_with_retry(self, runnable: Any, messages: list[BaseMessage]) -> Any:
         last_exc: Exception | None = None
-        for attempt in range(1, self.max_retries + 1):
+        rate_limit_attempt = 0
+        attempt = 0
+        while True:
+            attempt += 1
             try:
                 return runnable.invoke(messages)
+            except RateLimitError as exc:
+                last_exc = exc
+                rate_limit_attempt += 1
+                if rate_limit_attempt >= self.max_rate_limit_retries:
+                    raise LLMClientError(
+                        f"LLM call rate-limited after {rate_limit_attempt} attempts: {exc}"
+                    ) from exc
+                wait = _retry_after_seconds(exc)
+                delay = (wait + 0.25) if wait is not None else (
+                    self.retry_base_delay * (2 ** (rate_limit_attempt - 1))
+                )
+                delay += random.uniform(0, 0.25)  # jitter
+                logger.warning(
+                    "LLM call rate-limited, retry %d/%d in %.1fs",
+                    rate_limit_attempt, self.max_rate_limit_retries, delay,
+                )
+                time.sleep(delay)
+                continue
             except _RETRYABLE_EXCEPTIONS as exc:
                 last_exc = exc
             except APIStatusError as exc:
@@ -230,7 +284,7 @@ class LLMClient:
                     type(last_exc).__name__, attempt, self.max_retries, delay,
                 )
                 time.sleep(delay)
-
-        raise LLMClientError(
-            f"LLM call failed after {self.max_retries} attempts: {last_exc}"
-        ) from last_exc
+            else:
+                raise LLMClientError(
+                    f"LLM call failed after {attempt} attempts: {last_exc}"
+                ) from last_exc
