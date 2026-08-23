@@ -160,7 +160,12 @@ def soft_warning_interrupt_node(state: MarketplaceState, config: RunnableConfig)
     )
     user_reply = interrupt({"type": "security_warning", "msg": warning})
     return Command(
-        goto="__start__",
+        # goto="session_gate" (root's actual entry node), not the
+        # literal "__start__" implementation_details.md describes --
+        # Command(graph=Command.PARENT) only routes to real node names;
+        # "__start__" silently drops the write ("wrote to unknown
+        # channel branch:to:__start__, ignoring it"), confirmed live.
+        goto="session_gate",
         graph=Command.PARENT,
         update={"user_messages": [user_reply], "resume_target": "security_warning"},
     )
@@ -186,7 +191,7 @@ def soft_pivot_interrupt_node(state: MarketplaceState, config: RunnableConfig) -
     )
     user_reply = interrupt({"type": "soft_pivot", "msg": pivot})
     return Command(
-        goto="__start__",
+        goto="session_gate",
         graph=Command.PARENT,
         update={"user_messages": [user_reply], "resume_target": "soft_pivot"},
     )

@@ -160,13 +160,13 @@ def category_unsupported_interrupt(state: MarketplaceState) -> Command:
         supported=supported_categories_label(),
     )
     user_reply = interrupt({"type": "category_unsupported", "msg": msg})
-    return Command(goto="__start__", graph=Command.PARENT, update={"user_messages": [user_reply]})
+    return Command(goto="session_gate", graph=Command.PARENT, update={"user_messages": [user_reply]})  # see security.py
 
 
 def category_ambiguous_interrupt(state: MarketplaceState) -> Command:
     msg = CATEGORY_AMBIGUOUS_TEMPLATE.format(supported=supported_categories_label())
     user_reply = interrupt({"type": "category_ambiguous", "msg": msg})
-    return Command(goto="__start__", graph=Command.PARENT, update={"user_messages": [user_reply]})
+    return Command(goto="session_gate", graph=Command.PARENT, update={"user_messages": [user_reply]})  # see security.py
 
 
 def request_zip_node(state: MarketplaceState, config: RunnableConfig) -> dict:
@@ -179,7 +179,7 @@ def request_zip_interrupt(state: MarketplaceState) -> Command:
     is_retry = state.get("zip_attempts", 0) > 1
     msg = REQUEST_ZIP_RETRY_TEMPLATE if is_retry else REQUEST_ZIP_TEMPLATE
     user_reply = interrupt({"type": "request_zip", "msg": msg})
-    return Command(goto="__start__", graph=Command.PARENT, update={"user_messages": [user_reply]})
+    return Command(goto="session_gate", graph=Command.PARENT, update={"user_messages": [user_reply]})  # see security.py
 
 
 def zip_error_node(state: MarketplaceState) -> dict:
@@ -247,7 +247,7 @@ def dynamic_intake_interrupt(state: MarketplaceState) -> Command:
     next_field = next((f for f in priority if f in missing), missing[0] if missing else None)
     question = target_schema.get(next_field, {}).get("question", "Could you give me a bit more detail?")
     user_reply = interrupt({"type": "ask_slot", "field": next_field, "msg": question})
-    return Command(goto="__start__", graph=Command.PARENT, update={"user_messages": [user_reply]})
+    return Command(goto="session_gate", graph=Command.PARENT, update={"user_messages": [user_reply]})  # see security.py
 
 
 def intake_error_node(state: MarketplaceState) -> dict:

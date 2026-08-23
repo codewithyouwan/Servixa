@@ -129,7 +129,9 @@ def not_served_interrupt_node(state: MarketplaceState) -> Command:
     )
     user_reply = interrupt({"type": "not_served", "msg": msg})
     return Command(
-        goto="__start__",
+        # See subgraphs/security/security.py's soft_warning_interrupt_node
+        # for why this targets "session_gate", not "__start__".
+        goto="session_gate",
         graph=Command.PARENT,
         update={"user_messages": [user_reply], "pincode_valid": False},
     )
@@ -145,7 +147,7 @@ def broaden_search_node(state: MarketplaceState) -> dict:
 
 def no_match_interrupt_node(state: MarketplaceState) -> Command:
     user_reply = interrupt({"type": "no_match", "msg": NO_MATCH_TEMPLATE})
-    return Command(goto="__start__", graph=Command.PARENT, update={"user_messages": [user_reply]})
+    return Command(goto="session_gate", graph=Command.PARENT, update={"user_messages": [user_reply]})
 
 
 async def tool_execution_node(state: MarketplaceState, config: RunnableConfig) -> dict:
