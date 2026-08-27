@@ -344,3 +344,11 @@ def build_intake_subgraph():
     builder.add_edge("intake_error", END)
 
     return builder.compile()
+
+
+if __name__ == "__main__":
+    # Local-only: compile the subgraph on its own and dump its mermaid
+    # diagram. Kept out of build_intake_subgraph() so importing/building it
+    # from graph/root.py stays silent.
+    print("Compiling intake subgraph... and outputing mermaid diagram to stdout")
+    print(build_intake_subgraph().get_graph().draw_mermaid())
