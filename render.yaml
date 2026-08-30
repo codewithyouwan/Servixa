@@ -12,7 +12,7 @@ services:
       - key: AWS_REGION
         value: us-east-1
       - key: CORS_ORIGINS
-        value: https://bestbuild.ai, https://www.bestbuild.ai, https://bestbuild-api.onrender.com,http://localhost:3000
+        value: https://bestbuild.ai,https://www.bestbuild.ai,https://bestbuild-api.onrender.com,http://localhost:3000
       - key: DATABASE_URL
         sync: false
       - key: COGNITO_USER_POOL_ID
