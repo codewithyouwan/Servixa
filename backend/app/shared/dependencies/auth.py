@@ -152,3 +152,12 @@ def require_admin(user: UserOut = Depends(get_current_user)) -> UserOut:
             detail={"error": {"code": "FORBIDDEN", "message": "Admin role required"}},
         )
     return user
+
+
+def require_wallet_owner(user: UserOut = Depends(get_current_user)) -> UserOut:
+    if user.role not in ("homeowner", "service_provider"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": {"code": "FORBIDDEN", "message": "No wallet for this account type"}},
+        )
+    return user

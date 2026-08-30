@@ -12,6 +12,7 @@ import {
   Star,
   StickyNote,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import { PROVIDER_ROUTES } from "@/lib/provider/constants";
@@ -42,5 +43,6 @@ export const PROVIDER_SHELL: ShellConfig = {
     { label: "Reviews", href: PROVIDER_ROUTES.reviews, icon: Star },
     { label: "Portfolio", href: PROVIDER_ROUTES.portfolio, icon: Images },
     { label: "AI Assistant", href: PROVIDER_ROUTES.assistant, icon: Bot },
+    { label: "Wallet", href: PROVIDER_ROUTES.wallet, icon: Wallet },
   ],
 };

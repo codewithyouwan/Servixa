@@ -9,7 +9,7 @@
  */
 
 import Link from "next/link";
-import { ArrowRight, Download, HelpCircle, Images, Package, Users } from "lucide-react";
+import { ArrowRight, Download, HelpCircle, Images, Package, Star, Users } from "lucide-react";
 
 import { useAuth } from "@/app/components/providers/auth-provider";
 import { BRAND_ROUTES } from "@/lib/brand/constants";
@@ -36,8 +36,8 @@ function BrandDashboardSkeleton() {
         <Skeleton className="h-7 w-64" />
         <Skeleton className="h-4 w-80 max-w-full" />
       </div>
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-20 rounded-xl" />
         ))}
       </div>
@@ -77,7 +77,7 @@ export default function BrandDashboardPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-6">
         <KpiCard
           label="Products"
           value={String(summary.productCount)}
@@ -107,6 +107,12 @@ export default function BrandDashboardPage() {
           value={String(summary.openTickets)}
           icon={HelpCircle}
           href={BRAND_ROUTES.support}
+        />
+        <KpiCard
+          label="Rating"
+          value={summary.reviewCount > 0 ? `${summary.avgRating.toFixed(1)} (${summary.reviewCount})` : "—"}
+          icon={Star}
+          href={BRAND_ROUTES.plan}
         />
       </div>
 

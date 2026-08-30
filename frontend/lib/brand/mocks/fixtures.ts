@@ -13,6 +13,7 @@ import type {
   BrandDownloadCreate,
   BrandOverview,
   BrandOverviewUpdate,
+  BrandPlan,
   BrandProduct,
   BrandProductCreate,
   BrandProject,
@@ -20,6 +21,7 @@ import type {
   Dealer,
   DealerCreate,
   FaqItem,
+  Review,
   SupportTicket,
   SupportTicketCreate,
 } from "@/lib/brand/types";
@@ -354,6 +356,57 @@ export function resolveMockTicket(id: string): SupportTicket | undefined {
   return ticket;
 }
 
+export const MOCK_PLAN: BrandPlan = {
+  name: "Basic",
+  price: 5000,
+  billingPeriod: "year",
+  status: "active",
+  features: [
+    { label: "Company & brand profile", included: true },
+    { label: "Products & services listing", included: true },
+    { label: "Service areas", included: true },
+    { label: "Contact information", included: true },
+    { label: "Product catalog", included: true },
+    { label: "Basic project/portfolio showcase", included: true },
+    { label: "Receive contractor inquiries", included: true },
+    { label: "Basic lead notifications", included: true },
+    { label: "Basic profile analytics", included: true },
+    { label: "Customer reviews & ratings", included: true },
+  ],
+  startedAt: daysAgo(90),
+  endsAt: new Date(Date.now() + 275 * 24 * 3_600_000).toISOString(),
+};
+
+export const MOCK_REVIEWS: Review[] = [
+  {
+    id: "review-001",
+    rating: 5,
+    text: "The Infinity 24 heat pump has been a game changer — quiet, efficient, and the dealer network made install painless.",
+    reviewerName: "Priya Shah",
+    createdAt: daysAgo(18),
+  },
+  {
+    id: "review-002",
+    rating: 4,
+    text: "Great product line, though registering the warranty online took a couple of tries.",
+    reviewerName: "Marcus Webb",
+    createdAt: daysAgo(45),
+  },
+  {
+    id: "review-003",
+    rating: 5,
+    text: null,
+    reviewerName: "Elena Ruiz",
+    createdAt: daysAgo(70),
+  },
+];
+
+function averageRating(): number {
+  if (MOCK_REVIEWS.length === 0) return 0;
+  const sum = MOCK_REVIEWS.reduce((total, r) => total + r.rating, 0);
+  return Math.round((sum / MOCK_REVIEWS.length) * 100) / 100;
+}
+
 export function buildMockDashboard(): BrandDashboard {
   return {
     summary: {
@@ -362,6 +415,8 @@ export function buildMockDashboard(): BrandDashboard {
       downloadCount: MOCK_DOWNLOADS.length,
       dealerCount: MOCK_DEALERS.length,
       openTickets: MOCK_TICKETS.filter((t) => t.status === "open").length,
+      avgRating: averageRating(),
+      reviewCount: MOCK_REVIEWS.length,
     },
     recentTickets: [...MOCK_TICKETS].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5),
   };

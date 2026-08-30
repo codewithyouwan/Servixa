@@ -4,6 +4,7 @@
  */
 
 import type { AuthSession, User, UserRole } from "@/lib/types";
+import { ApiError } from "@/lib/types";
 import type {
   AuthService,
   LoginCredentials,
@@ -12,6 +13,18 @@ import type {
   SessionOptions,
 } from "./auth-service";
 import { createMockSession } from "./mock-session";
+
+/**
+ * Mirrors real Cognito's actual constraint: the sign-in identifier is
+ * email, so one email is one account pool-wide — a role is assigned to
+ * that single account at signup, not chosen per email. Without this,
+ * mock mode let the same email "register" as homeowner, provider, AND
+ * brand back to back, which live Cognito would reject on the 2nd/3rd
+ * attempt with UsernameExistsException. Module-level so it persists
+ * across role switches for the lifetime of the page (resets on refresh,
+ * same as every other mock fixture in this app).
+ */
+const REGISTERED_EMAILS = new Set<string>();
 
 export class DummyAuthService implements AuthService {
   private session: AuthSession | null = null;
@@ -52,6 +65,15 @@ export class DummyAuthService implements AuthService {
   }
 
   async register(input: RegisterInput): Promise<RegisterResult> {
+    const normalizedEmail = input.email.trim().toLowerCase();
+    if (REGISTERED_EMAILS.has(normalizedEmail)) {
+      throw new ApiError(
+        "UsernameExistsException",
+        "An account with this email already exists — try logging in instead.",
+        409,
+      );
+    }
+    REGISTERED_EMAILS.add(normalizedEmail);
     this.role = input.role;
     return { userId: "mock-user-id", email: input.email, confirmationRequired: false };
   }

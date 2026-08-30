@@ -2,8 +2,11 @@ name: servixa
 
 services:
   # PostgreSQL database (alternative to TiDB for local testing)
+  # pgvector/pgvector:pg16 (not plain postgres:16-alpine) — schema.sql's
+  # `CREATE EXTENSION IF NOT EXISTS vector` needs it available in the image.
+  # RDS Postgres supports pgvector natively; this only matters for local dev.
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     env_file:
       - .env
     environment:
@@ -43,10 +46,15 @@ services:
       - .env
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       DATABASE_URL: ${DATABASE_URL:-postgresql://bestbuild:dev-password@db:5432/bestbuild}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-}
+      COGNITO_APP_CLIENT_ID: ${COGNITO_APP_CLIENT_ID:-}
+      COGNITO_APP_CLIENT_SECRET: ${COGNITO_APP_CLIENT_SECRET:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     ports:
       - "8000:8000"
     depends_on:

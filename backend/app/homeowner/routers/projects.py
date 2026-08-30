@@ -8,7 +8,7 @@ from app.shared.schemas.common import ApiResponse
 from app.homeowner.schemas.project import ProjectCreate, ProjectOut
 from app.homeowner.schemas.quote import QuoteOut
 from app.shared.schemas.user import UserOut
-from app.homeowner.services import mock_data
+from app.homeowner.services import quote_service
 from app.homeowner.services.project_service import (
     create_project_for_user,
     get_project_for_user,
@@ -70,12 +70,9 @@ async def get_project(
     response_model=ApiResponse[list[QuoteOut]],
     response_model_by_alias=True,
 )
-def project_quotes(
-    project_id: str, user: UserOut = Depends(require_homeowner)
+async def project_quotes(
+    project_id: str,
+    user: UserOut = Depends(require_homeowner),
+    db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[list[QuoteOut]]:
-    # Quotes are still mock — the matching/quoting pipeline hasn't moved
-    # off mock data yet. A real (DB-backed) project_id simply won't match
-    # any mock quote here, so this returns [] until that piece is built.
-    return ApiResponse(
-        data=[q for q in mock_data.MOCK_QUOTES if q.project_id == project_id]
-    )
+    return ApiResponse(data=await quote_service.list_for_project(db, user, project_id))

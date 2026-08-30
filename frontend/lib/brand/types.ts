@@ -143,9 +143,38 @@ export interface BrandDashboardSummary {
   downloadCount: number;
   dealerCount: number;
   openTickets: number;
+  avgRating: number;
+  reviewCount: number;
 }
 
 export interface BrandDashboard {
   summary: BrandDashboardSummary;
   recentTickets: SupportTicket[];
+}
+
+/** Backed by subscriptions + user_subscriptions (see backend/db/schema.sql's
+ * SUBSCRIPTIONS region) — a single "Basic" tier for now, feature checklist
+ * stored server-side rather than a features table. */
+export interface PlanFeature {
+  label: string;
+  included: boolean;
+}
+
+export interface BrandPlan {
+  name: string;
+  price: number;
+  billingPeriod: string;
+  status: "active" | "expired";
+  features: PlanFeature[];
+  startedAt: string;
+  endsAt: string;
+}
+
+/** Backed by `ratings` (rated_for = this brand's company id). */
+export interface Review {
+  id: string;
+  rating: number;
+  text: string | null;
+  reviewerName: string;
+  createdAt: string;
 }

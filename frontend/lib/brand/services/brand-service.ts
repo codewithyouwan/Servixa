@@ -4,6 +4,7 @@ import type {
   BrandDownloadCreate,
   BrandOverview,
   BrandOverviewUpdate,
+  BrandPlan,
   BrandProduct,
   BrandProductCreate,
   BrandProject,
@@ -12,6 +13,7 @@ import type {
   DealerCreate,
   DownloadCategory,
   FaqItem,
+  Review,
   SupportTicket,
   SupportTicketCreate,
 } from "@/lib/brand/types";
@@ -96,5 +98,13 @@ export const BrandService = {
 
   async dashboard(signal?: AbortSignal): Promise<BrandDashboard> {
     return (await apiClient.request<BrandDashboard>(BRAND_ENDPOINTS.dashboard, { signal })).data;
+  },
+
+  async plan(signal?: AbortSignal): Promise<BrandPlan> {
+    return (await apiClient.request<BrandPlan>(BRAND_ENDPOINTS.plan, { signal })).data;
+  },
+
+  async reviews(signal?: AbortSignal): Promise<Review[]> {
+    return (await apiClient.request<Review[]>(BRAND_ENDPOINTS.reviews, { signal })).data;
   },
 };

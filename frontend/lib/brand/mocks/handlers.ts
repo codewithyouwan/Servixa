@@ -20,6 +20,8 @@ import {
   MOCK_DEALERS,
   MOCK_FAQS,
   MOCK_TICKETS,
+  MOCK_PLAN,
+  MOCK_REVIEWS,
   updateMockOverview,
   addMockProduct,
   addMockProject,
@@ -49,6 +51,10 @@ export function resolveBrandMock(path: string, method: string, body?: unknown): 
         return MOCK_TICKETS;
       case E.dashboard:
         return buildMockDashboard();
+      case E.plan:
+        return MOCK_PLAN;
+      case E.reviews:
+        return MOCK_REVIEWS;
     }
     return undefined;
   }

@@ -33,8 +33,8 @@ export class HttpTransport implements ApiTransport {
       let message = res.statusText;
       try {
         const body = (await res.json()) as ApiErrorBody;
-        code = body.error.code;
-        message = body.error.message;
+        code = body.detail.error.code;
+        message = body.detail.error.message;
       } catch {
         // non-JSON error body — keep defaults
       }

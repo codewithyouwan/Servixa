@@ -12,6 +12,7 @@ export const ROUTES = {
   providers: "/pages/dashboard/providers",
   digitalTwin: "/pages/dashboard/digital-twin",
   assistant: "/pages/dashboard/assistant",
+  wallet: "/pages/dashboard/wallet",
   settings: "/pages/dashboard/settings",
 } as const;
 

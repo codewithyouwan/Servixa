@@ -1,5 +1,6 @@
 import {
   Building2,
+  CreditCard,
   Download,
   HelpCircle,
   Images,
@@ -24,5 +25,6 @@ export const BRAND_SHELL: ShellConfig = {
     { label: "Downloads", href: BRAND_ROUTES.downloads, icon: Download },
     { label: "Dealers & Distributors", href: BRAND_ROUTES.dealers, icon: Users },
     { label: "Support", href: BRAND_ROUTES.support, icon: HelpCircle },
+    { label: "Plan & Reviews", href: BRAND_ROUTES.plan, icon: CreditCard },
   ],
 };

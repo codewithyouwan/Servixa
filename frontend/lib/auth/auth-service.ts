@@ -30,6 +30,8 @@ export interface RegisterInput {
   password: string;
   name: string;
   role: SelfServeRole;
+  /** From a referral link (?ref=CODE) — credits the referrer's wallet on signup. */
+  referralCode?: string;
 }
 
 export interface RegisterResult {

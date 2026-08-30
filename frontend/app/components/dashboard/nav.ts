@@ -6,6 +6,7 @@ import {
   MessageSquare,
   ReceiptText,
   Search,
+  Wallet,
 } from "lucide-react";
 
 import { ROUTES } from "@/lib/constants/routes";
@@ -24,5 +25,6 @@ export const HOMEOWNER_SHELL: ShellConfig = {
     { label: "Find Contractors", href: ROUTES.providers, icon: Search },
     { label: "Home Digital Twin", href: ROUTES.digitalTwin, icon: FolderLock },
     { label: "AI Assistant", href: ROUTES.assistant, icon: Bot },
+    { label: "Wallet", href: ROUTES.wallet, icon: Wallet },
   ],
 };

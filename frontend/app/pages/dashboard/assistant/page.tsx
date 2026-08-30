@@ -30,6 +30,13 @@ const SUGGESTIONS = [
   "Need my 2BHK deep cleaned",
 ];
 
+// The assistant needs a live LLM conversation — there's no meaningful way
+// to fake that with static fixtures, so mock mode has no handler for this
+// endpoint (see lib/homeowner/services/ai-assistant-service.ts). Short-
+// circuit here with a clear message instead of surfacing a raw 404.
+const MOCK_MODE_MESSAGE =
+  "The AI Assistant needs a live connection to the backend (and a configured LLM key) — it isn't available in this demo/mock mode. Use \"Post a project manually\" below instead.";
+
 /**
  * AI Project Assistant — conversational project intake with a live
  * project card. Talks to POST /ai/project-assistant; each turn returns
@@ -57,6 +64,12 @@ export default function AssistantPage() {
     setError(null);
     setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
+
+    if (process.env.NEXT_PUBLIC_API_MODE !== "live") {
+      setMessages((prev) => [...prev, { role: "assistant", text: MOCK_MODE_MESSAGE }]);
+      return;
+    }
+
     setIsSending(true);
 
     try {

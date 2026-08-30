@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { AccountTypeProvider } from "@/app/components/auth/account-type-context";
 import { AuthLayout } from "@/app/components/auth/auth-layout";
@@ -19,7 +20,11 @@ export default function SignupPage() {
         panelTitle="Start your next project with confidence."
         panelDescription="Join thousands of homeowners and service providers using AI to plan projects, match with the right pros, and compare quotes."
       >
-        <SignupForm />
+        {/* SignupForm reads ?ref= via useSearchParams(), which requires a
+            Suspense boundary so the page can still be statically prerendered. */}
+        <Suspense>
+          <SignupForm />
+        </Suspense>
       </AuthLayout>
     </AccountTypeProvider>
   );

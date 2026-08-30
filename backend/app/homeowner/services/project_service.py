@@ -13,9 +13,10 @@ from app.homeowner.schemas.project import ProjectCreate, ProjectOut
 from app.shared.schemas.user import UserOut
 from db.models import Project
 from db.repository import projects as project_repo
+from db.repository.quotes import count_quotes_for_project, count_quotes_for_projects
 
 
-def _to_project_out(project: Project) -> ProjectOut:
+def _to_project_out(project: Project, quotes_count: int) -> ProjectOut:
     return ProjectOut(
         id=str(project.project_id),
         title=project.title,
@@ -26,7 +27,11 @@ def _to_project_out(project: Project) -> ProjectOut:
         budget_max=project.budget_max or 0,
         location=project.location or "",
         progress=project.progress,
-        quotes_count=project.quotes_count,
+        quotes_count=quotes_count,
+        # Intentionally still the stored (always-0) column: chat_rooms/messages
+        # exist in schema.sql but have no SQLAlchemy models or app code yet —
+        # no real message source to compute this from. Not part of this
+        # integration's scope; revisit once in-app messaging is built.
         unread_messages=project.unread_messages,
         cover_image_url=project.cover_image_url,
         created_at=project.created_at.isoformat(),
@@ -47,12 +52,16 @@ async def create_project_for_user(
         budget_max=payload.budget_max,
         location=payload.location,
     )
-    return _to_project_out(project)
+    return _to_project_out(project, quotes_count=0)
 
 
 async def list_projects_for_user(db: AsyncSession, user: UserOut) -> list[ProjectOut]:
     projects = await project_repo.list_projects_for_owner(db, uuid.UUID(user.id))
-    return [_to_project_out(p) for p in projects]
+    # project_quotes is real (db/migrations/002_project_quotes.sql) — compute
+    # quotes_count live rather than trusting projects.quotes_count, which
+    # nothing writes to anymore. One GROUP BY for the whole list, not N.
+    counts = await count_quotes_for_projects(db, [p.project_id for p in projects])
+    return [_to_project_out(p, quotes_count=counts.get(p.project_id, 0)) for p in projects]
 
 
 async def get_project_for_user(
@@ -61,4 +70,5 @@ async def get_project_for_user(
     project = await project_repo.get_project_for_owner(db, project_id, uuid.UUID(user.id))
     if project is None:
         return None
-    return _to_project_out(project)
+    quotes_count = await count_quotes_for_project(db, project_id)
+    return _to_project_out(project, quotes_count=quotes_count)

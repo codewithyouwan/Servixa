@@ -24,6 +24,7 @@ export const PROVIDER_ROUTES = {
   reviews: "/pages/provider/reviews",
   portfolio: "/pages/provider/portfolio",
   assistant: "/pages/provider/assistant",
+  wallet: "/pages/provider/wallet",
   profile: "/pages/provider/profile",
   settings: "/pages/provider/settings",
   // Legacy sections absorbed by the newer CRM module — keep the keys so
