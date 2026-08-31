@@ -33,6 +33,10 @@ class ProjectDraftOut(CamelModel):
     category: str = ""
     category_label: str = ""
     pincode: str = ""
+    # Human-readable job location ("123 Main St, Austin, TX 78701") when the
+    # job is at the user's saved profile address; empty once the user moves
+    # the job to a different ZIP.
+    address: str = ""
     collected: list[DraftField] = []
     # 0-100, across category + ZIP + each required field for the category.
     progress: int = 0
