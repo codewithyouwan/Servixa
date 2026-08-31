@@ -25,6 +25,11 @@ CONFIG = {
     }
 }
 
+# Same config plus the ZIP from the user's saved profile address, which is
+# what the app passes in production — the job defaults to the user's own
+# location until they say it's somewhere else.
+PROFILE_CONFIG = {"configurable": {**CONFIG["configurable"], "pincode": "94105"}}
+
 # Fields the interactive loop carries from one turn to the next, mirroring
 # what root's checkpointer would keep across an interrupt/resume.
 CARRIED_FIELDS = [
@@ -74,10 +79,10 @@ def run_auto() -> int:
         if not condition:
             failures.append(name)
 
-    def invoke(msg, **overrides):
+    def invoke(msg, config=CONFIG, **overrides):
         print(f"[INVOKE]: {msg}")
         try:
-            return graph.invoke(base_state(msg, **overrides), CONFIG)
+            return graph.invoke(base_state(msg, **overrides), config)
         except Exception as exc:
             # One blown call shouldn't hide the rest of the checks; the
             # empty result makes the dependent check fail with the reason.
@@ -85,11 +90,11 @@ def run_auto() -> int:
             return {}
 
     # 1. ZIP + category in one message -> resolved, intake open, asks a slot
-    r = invoke("My AC stopped cooling, I'm in 110001")
+    r = invoke("My AC stopped cooling, I'm in 10001")
     payload = interrupt_payload(r)
     check("resolve-and-ask",
           r.get("category") == "HVAC" and r.get("category_status") == "resolved"
-          and r.get("pincode") == "110001" and payload and payload["type"] == "ask_slot",
+          and r.get("pincode") == "10001" and payload and payload["type"] == "ask_slot",
           f"category={r.get('category')} status={r.get('category_status')} "
           f"pincode={r.get('pincode')} interrupt={payload}")
 
@@ -103,7 +108,7 @@ def run_auto() -> int:
           f"interrupt={payload}")
 
     # 3. Category we don't serve -> unsupported interrupt
-    r = invoke("Can someone come walk my dog? I'm at 110001")
+    r = invoke("Can someone come walk my dog? I'm at 10001")
     payload = interrupt_payload(r)
     check("unsupported-category",
           r.get("category_status") == "unsupported"
@@ -111,7 +116,7 @@ def run_auto() -> int:
           f"status={r.get('category_status')} interrupt={payload}")
 
     # 4. Too generic to route -> ambiguous interrupt (clarify, not reject)
-    r = invoke("I need some help with a repair at 110001")
+    r = invoke("I need some help with a repair at 10001")
     payload = interrupt_payload(r)
     check("ambiguous-category",
           r.get("category_status") == "ambiguous"
@@ -121,7 +126,7 @@ def run_auto() -> int:
     # 5. Last slot answered -> intake complete
     r = invoke(
         "Tomorrow works for me",
-        category="HVAC", category_status="resolved", pincode="110001", pincode_valid=True,
+        category="HVAC", category_status="resolved", pincode="10001", pincode_valid=True,
         active_intake=True,
         collected_details={"service_type": "repair", "ac_type": "split", "unit_count": 2},
     )
@@ -134,17 +139,17 @@ def run_auto() -> int:
     # 6. Resolved category survives a turn that only mentions a ZIP
     #    (regression: per-turn extraction used to clobber it)
     r = invoke(
-        "It's 560001",
+        "It's 30301",
         category="HVAC", category_status="resolved", active_intake=True,
         collected_details={"service_type": "repair"},
     )
     check("category-sticky",
-          r.get("category") == "HVAC" and r.get("pincode") == "560001",
+          r.get("category") == "HVAC" and r.get("pincode") == "30301",
           f"category={r.get('category')} pincode={r.get('pincode')}")
 
     # 7. Pivot wipes the previous request's slots
     r = invoke(
-        "Actually forget the AC, I need a plumber — 110001",
+        "Actually forget the AC, I need a plumber — 10001",
         user_action="pivoting", category="HVAC", category_status="resolved",
         active_intake=True,
         collected_details={"service_type": "repair", "ac_type": "split", "unit_count": 2},
@@ -160,10 +165,34 @@ def run_auto() -> int:
           r.get("intake_exit") == "error" and r.get("final_response"),
           f"exit={r.get('intake_exit')} zip_attempts={r.get('zip_attempts')}")
 
-    # 9. Slot-filling attempts exhausted -> hard error exit
+    # 9. Saved profile ZIP -> never asks for a location it already has
+    r = invoke("I need a plumber", config=PROFILE_CONFIG)
+    payload = interrupt_payload(r)
+    check("profile-zip-default",
+          r.get("pincode") == "94105" and r.get("pincode_valid") is True
+          and payload and payload["type"] == "ask_slot",
+          f"pincode={r.get('pincode')} interrupt={payload}")
+
+    # 10. A ZIP in the message wins over the saved profile ZIP
+    r = invoke("I need a plumber, the job is at 10001", config=PROFILE_CONFIG)
+    check("explicit-zip-overrides-profile",
+          r.get("pincode") == "10001",
+          f"pincode={r.get('pincode')}")
+
+    # 11. Profile ZIP survives a pivot (same home, different job)
+    r = invoke(
+        "Actually forget the AC, I need a plumber", config=PROFILE_CONFIG,
+        user_action="pivoting", category="HVAC", category_status="resolved",
+        active_intake=True, collected_details={"service_type": "repair"},
+    )
+    check("profile-zip-survives-pivot",
+          r.get("category") == "plumbing" and r.get("pincode") == "94105",
+          f"category={r.get('category')} pincode={r.get('pincode')}")
+
+    # 12. Slot-filling attempts exhausted -> hard error exit
     r = invoke(
         "I'm not sure yet",
-        category="HVAC", category_status="resolved", pincode="110001", pincode_valid=True,
+        category="HVAC", category_status="resolved", pincode="10001", pincode_valid=True,
         active_intake=True, intake_attempts=3,
     )
     check("intake-overflow",

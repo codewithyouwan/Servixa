@@ -26,8 +26,12 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "furnace": "HVAC",
     "plumbing": "plumbing", "plumber": "plumbing", "pipe": "plumbing",
     "pipes": "plumbing", "leak": "plumbing", "faucet": "plumbing",
+    "sink": "plumbing", "drain": "plumbing", "clog": "plumbing",
+    "toilet": "plumbing", "shower": "plumbing", "water heater": "plumbing",
     "electrical": "electrical", "electrician": "electrical",
     "wiring": "electrical", "switchboard": "electrical",
+    "outlet": "electrical", "socket": "electrical", "breaker": "electrical",
+    "fuse": "electrical", "circuit": "electrical", "ceiling fan": "electrical",
     "cleaning": "cleaning", "clean": "cleaning", "housekeeping": "cleaning",
     "maid": "cleaning",
     "painting": "painting", "paint": "painting", "painter": "painting",
@@ -90,14 +94,19 @@ def resolve_category(category_raw: str | None) -> tuple[str | None, str]:
         if alias in needle:
             return canonical, "resolved"
 
+    # Generic terms are checked BEFORE the loose description match below:
+    # words like "repair" or "service" appear in several categories'
+    # descriptions, so the substring match would confidently resolve a
+    # bare "repair" to whichever category happens to be listed first
+    # (HVAC) instead of asking the user which service they mean.
+    if needle in _GENERIC_TERMS or any(term in needle for term in _GENERIC_TERMS):
+        return None, "ambiguous"
+
     # Substring against display name / description.
     for key, spec in specs.items():
         haystack = f"{spec['display_name']} {spec['description']}".lower()
         if needle in haystack or key.lower() in needle:
             return key, "resolved"
-
-    if needle in _GENERIC_TERMS or any(term in needle for term in _GENERIC_TERMS):
-        return None, "ambiguous"
 
     return None, "unsupported"
 

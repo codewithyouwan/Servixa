@@ -33,6 +33,12 @@ doesn't address; leave it null. When a field has allowed options, map the \
 user's free text to the closest matching option rather than inventing a new \
 value. If the user is correcting a value already collected (e.g. "actually \
 make it 3"), extract the corrected value under the same field name.
+
+Reply with a single JSON object and nothing else. Its keys are exactly the \
+field names from the "Fields still needed" list, and its values are what the \
+message provides for them; use null for every field the message does not \
+answer. Do not invent extra keys and do not wrap the JSON in prose or code \
+fences.
 """
 
 FIELD_EXTRACTION_INPUT_TEMPLATE = """\

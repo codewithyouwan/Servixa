@@ -50,7 +50,7 @@ def base_state(**overrides) -> dict:
         "user_messages": ["Tomorrow works for me"],
         "messages": [],
         "category": "HVAC",
-        "pincode": "110001",
+        "pincode": "10001",
         "collected_details": dict(HVAC_DETAILS),
         "is_data_complete": True,
         "matched_contractors": [],
@@ -167,10 +167,10 @@ def run_auto() -> int:
           "broaden -> tool_execution when matched, else no_match_interrupt")
 
     # 6. Project-field helpers
-    fields = build_project_fields("HVAC", "HVAC & Cooling", HVAC_DETAILS, "110001")
+    fields = build_project_fields("HVAC", "HVAC & Cooling", HVAC_DETAILS, "10001")
     check("project-fields",
           fields["title"].endswith("Repair") and "Ac Type: split" in fields["description"]
-          and fields["location"] == "110001",
+          and fields["location"] == "10001",
           f"title={fields['title']!r} location={fields['location']!r}")
 
     check("category-slug",
@@ -178,9 +178,9 @@ def run_auto() -> int:
           and category_to_slug(None) == "general-contracting",
           "HVAC/pest_control/None map to the frontend slugs")
 
-    key_a = build_idempotency_key("t1", "HVAC", "110001", {"a": 1, "b": 2})
-    key_b = build_idempotency_key("t1", "HVAC", "110001", {"b": 2, "a": 1})
-    key_c = build_idempotency_key("t2", "HVAC", "110001", {"a": 1, "b": 2})
+    key_a = build_idempotency_key("t1", "HVAC", "10001", {"a": 1, "b": 2})
+    key_b = build_idempotency_key("t1", "HVAC", "10001", {"b": 2, "a": 1})
+    key_c = build_idempotency_key("t2", "HVAC", "10001", {"a": 1, "b": 2})
     check("idempotency-key",
           key_a == key_b and key_a != key_c,
           "stable under dict ordering, varies by thread")
