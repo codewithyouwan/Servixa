@@ -5,10 +5,8 @@
  * "Homeowners / Service Providers / Brands" reads as one consistent set
  * wherever it appears, and swaps together when the audience changes.
  *
- * Homeowner and provider are first-party photos served from /public;
- * brand still hotlinks a Pexels photo (free license, hotlinking permitted,
- * no attribution required). To swap art direction, only this file needs
- * to change.
+ * All three are first-party photos served from /public. To swap art
+ * direction, only this file needs to change.
  */
 
 export type TrustAudience = "homeowner" | "provider" | "brand";
@@ -27,8 +25,8 @@ const TRUST_PHOTOS: Record<TrustAudience, TrustPhoto> = {
     alt: "A smiling plumber giving a thumbs up while installing a kitchen sink",
   },
   brand: {
-    pexelsId: 34852719,
-    alt: "Rows of colorful shovel handles displayed in a hardware store",
+    src: "/photos/brand.jpeg",
+    alt: "A smart home surrounded by icons for the connected services and product categories in its catalog",
   },
 };
 
