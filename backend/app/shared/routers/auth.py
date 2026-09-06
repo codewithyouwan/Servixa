@@ -12,6 +12,7 @@ from typing import Literal
 
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.shared.schemas.common import ApiResponse
@@ -47,11 +48,23 @@ def _raise_from_cognito(exc: ClientError) -> None:
     ) from exc
 
 
+def _normalize_zip(zip_code: str | None) -> str | None:
+    """Trim/upper-case the postal code so "  10001 " and "k1a 0b1" land in
+    the JSONB the same way they would from the profile form."""
+    normalized = " ".join((zip_code or "").split()).upper()
+    return normalized or None
+
+
 class RegisterRequest(CamelModel):
     email: str
     password: str
     name: str
     role: SelfServeRole
+    # The sign-up form collects a ZIP before anything else, so the base
+    # profile row can start with a location. Optional and loosely bounded
+    # on purpose: the form accepts international postal codes too, and an
+    # older client that doesn't send one must still be able to register.
+    zip_code: str | None = Field(default=None, max_length=12)
 
 
 class RegisterResponse(CamelModel):
@@ -114,6 +127,7 @@ async def register(
         email=body.email,
         role=body.role,
         created_by=body.email,
+        zip_code=_normalize_zip(body.zip_code),
     )
 
     return ApiResponse(

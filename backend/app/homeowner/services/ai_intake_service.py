@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import sys
 import uuid
 from dataclasses import dataclass, field
@@ -105,6 +106,24 @@ def category_to_slug(category: str | None) -> str:
     return _CATEGORY_SLUG_MAP.get(category, category.lower().replace("_", "-"))
 
 
+def _profile_location(user: UserOut) -> tuple[str | None, str | None]:
+    """(zip, display label) from the user's saved profile address.
+
+    Returns (None, None) when there's no usable 5-digit ZIP on file — in
+    that case the assistant falls back to asking for one, as before.
+    """
+    addr = user.address
+    if addr is None:
+        return None, None
+    match = re.search(r"\d{5}", addr.postal_code or "")
+    if not match:
+        return None, None
+    pincode = match.group(0)
+    parts = [p for p in (addr.line1, addr.city, addr.state) if p]
+    label = f"{', '.join(parts)} {pincode}" if parts else pincode
+    return pincode, label
+
+
 # ===========================================================================
 # Structured output schema
 # ===========================================================================
@@ -131,7 +150,11 @@ class TurnResult(BaseModel):
         default=None, description="One of the supported category keys, or null if not yet clear."
     )
     pincode: str | None = Field(
-        default=None, description="The 5-digit US ZIP code for the job, or null if not given yet."
+        default=None,
+        description=(
+            "The 5-digit US ZIP code for the job — keep the prefilled profile "
+            "ZIP unless the user gave a different one; null if none is known."
+        ),
     )
     collected: list[FieldValue] = Field(
         default_factory=list, description="Every field value known so far, including ones from earlier turns."
@@ -173,7 +196,12 @@ rather than interrogating them. Only push back when you truly cannot proceed \
 
 WHAT TO COLLECT
 1. The service category (infer it — "my AC is not cooling" is HVAC, don't ask).
-2. The 5-digit US ZIP code for the job location.
+2. The 5-digit US ZIP code for the job location. When the job location line \
+below says it comes from the user's saved profile, that ZIP is already \
+filled in — do NOT ask for their ZIP or address. If the user says the job \
+is somewhere else, use the ZIP they give instead (ask for it if they named \
+a different place without one). Only when no saved address is on file and \
+none has been given should you ask for the ZIP.
 3. Every required field for that category, from the spec provided.
 Set ready_to_post true only when all three are complete. On that final turn, \
 your reply should confirm what's being posted in one short sentence.
@@ -199,7 +227,7 @@ Supported categories: {categories}
 {spec_block}
 Details collected so far: {collected}
 Category so far: {category}
-ZIP so far: {pincode}
+Job location: {location}
 
 Conversation:
 {transcript}
@@ -241,6 +269,12 @@ class ConversationState:
     messages: list[dict[str, str]] = field(default_factory=list)
     category: str | None = None
     pincode: str | None = None
+    # ZIP + display label seeded from the user's saved profile address on
+    # the first turn; `address` is cleared if the user moves the job to a
+    # different ZIP (the street line no longer applies there).
+    profile_pincode: str | None = None
+    address: str | None = None
+    seeded: bool = False
     collected: dict[str, str] = field(default_factory=dict)
     draft: dict[str, Any] = field(default_factory=dict)
     strikes: int = 0
@@ -309,13 +343,24 @@ def _transcript(messages: list[dict[str, str]]) -> str:
     )
 
 
+def _location_line(state: ConversationState) -> str:
+    if state.address and state.pincode:
+        return (
+            f"{state.address} (ZIP {state.pincode} — the user's saved profile "
+            "address; use it unless they say the job is elsewhere)"
+        )
+    if state.pincode:
+        return f"ZIP {state.pincode}"
+    return "(unknown — no saved address on file; ask for the ZIP code)"
+
+
 def _run_turn(state: ConversationState, message: str) -> TurnResult:
     prompt = INPUT_TEMPLATE.format(
         categories=", ".join(load_service_specs().keys()),
         spec_block=_spec_block(state.category),
         collected=json.dumps(state.collected) if state.collected else "(nothing yet)",
         category=state.category or "(not identified yet)",
-        pincode=state.pincode or "(not given yet)",
+        location=_location_line(state),
         transcript=_transcript(state.messages + [{"role": "user", "content": message}]),
     )
     return _get_client().invoke(prompt, output_schema=TurnResult)
@@ -330,6 +375,14 @@ async def handle_turn(
     """Process one user message and return the assistant's response,
     the live project draft, and the created project once complete."""
     state = _get_state(thread_id)
+
+    # Default the job location from the user's saved profile address so we
+    # never ask for a ZIP they already gave us at profile completion. The
+    # user can still move the job elsewhere by saying so in chat.
+    if not state.seeded:
+        state.seeded = True
+        state.profile_pincode, state.address = _profile_location(user)
+        state.pincode = state.profile_pincode
 
     if state.done:
         return _response(state, "This request is already posted. Start a new one any time.", None)
@@ -368,6 +421,9 @@ async def handle_turn(
         state.category = result.category
     if result.pincode:
         state.pincode = result.pincode
+    if state.profile_pincode and state.pincode != state.profile_pincode:
+        # Job moved off the saved address — its street line no longer applies.
+        state.address = None
     for item in result.collected:
         if item.value:
             state.collected[item.name] = item.value
@@ -453,6 +509,7 @@ def _response(
             "category": state.category or "",
             "category_label": spec.get("display_name", "") if spec else "",
             "pincode": state.pincode or "",
+            "address": state.address or "",
             "collected": [
                 {"name": k.replace("_", " ").title(), "value": v}
                 for k, v in state.collected.items()

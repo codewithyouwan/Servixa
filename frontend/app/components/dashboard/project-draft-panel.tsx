@@ -69,10 +69,23 @@ export function ProjectDraftPanel({ draft }: { draft: ProjectDraft }) {
 
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         {isEmpty ? (
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            As you describe your project, I&apos;ll build it out here — scope, a typical plan of
-            work, and an estimated budget.
-          </p>
+          <>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              As you describe your project, I&apos;ll build it out here — scope, a typical plan of
+              work, and an estimated budget.
+            </p>
+            {draft.pincode && (
+              <div className="animate-draft-in space-y-1 text-sm">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
+                  {draft.address || draft.pincode}
+                </span>
+                <p className="text-xs text-muted-foreground">
+                  Job location from your profile — mention a different ZIP in chat to change it.
+                </p>
+              </div>
+            )}
+          </>
         ) : (
           <>
             {draft.title && (
@@ -99,7 +112,7 @@ export function ProjectDraftPanel({ draft }: { draft: ProjectDraft }) {
                 {draft.pincode && (
                   <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                     <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
-                    {draft.pincode}
+                    {draft.address || draft.pincode}
                   </span>
                 )}
                 {budget && (

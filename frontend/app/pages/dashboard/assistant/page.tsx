@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowRight, Bot, Send, Sparkles, User as UserIcon } from "lucide-react";
 
 import { ProjectDraftPanel } from "@/app/components/dashboard/project-draft-panel";
+import { useAuth } from "@/app/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/lib/constants/routes";
@@ -24,6 +25,21 @@ interface ChatMessage {
 const GREETING =
   "Hi! Tell me what you need done — the type of work, roughly where, and any details you have — and I'll get your project posted for quotes.";
 
+/** Mirrors backend _profile_location(): the saved profile address is the
+ *  default job location, shown up front so the user knows what will be
+ *  used and can override it in chat. */
+function profileLocation(address?: {
+  line1?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+}): { zip: string; label: string } | null {
+  const zip = address?.postalCode?.match(/\d{5}/)?.[0];
+  if (!zip || !address) return null;
+  const parts = [address.line1, address.city, address.state].filter(Boolean).join(", ");
+  return { zip, label: parts ? `${parts} ${zip}` : zip };
+}
+
 const SUGGESTIONS = [
   "My AC stopped cooling",
   "Kitchen sink is leaking",
@@ -37,10 +53,25 @@ const SUGGESTIONS = [
  * the chat always agree.
  */
 export default function AssistantPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([{ role: "assistant", text: GREETING }]);
+  const { user } = useAuth();
+  const profile = useMemo(() => profileLocation(user?.address), [user]);
+
+  // The greeting and the seeded draft are derived (not state) because the
+  // user's profile loads async — this way they fill in whenever it lands.
+  const greeting = profile
+    ? `Hi! Tell me what you need done — the type of work and any details you have — and I'll get your project posted for quotes. I'll use your saved address (${profile.label}) as the job location; just say so if this project is somewhere else.`
+    : GREETING;
+  const seededDraft = useMemo<ProjectDraft>(
+    () =>
+      profile ? { ...EMPTY_DRAFT, pincode: profile.zip, address: profile.label } : EMPTY_DRAFT,
+    [profile],
+  );
+
+  // Real conversation turns only — the greeting bubble is prepended at render.
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [threadId, setThreadId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<ProjectDraft>(EMPTY_DRAFT);
+  const [draft, setDraft] = useState<ProjectDraft | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -85,16 +116,17 @@ export default function AssistantPage() {
   }
 
   function startOver() {
-    setMessages([{ role: "assistant", text: GREETING }]);
+    setMessages([]);
     setInput("");
     setThreadId(null);
-    setDraft(EMPTY_DRAFT);
+    setDraft(null);
     setDone(false);
     setProject(null);
     setError(null);
   }
 
-  const showSuggestions = messages.length === 1 && !isSending;
+  const allMessages: ChatMessage[] = [{ role: "assistant", text: greeting }, ...messages];
+  const showSuggestions = messages.length === 0 && !isSending;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -113,7 +145,7 @@ export default function AssistantPage() {
         {/* Chat */}
         <div className="animate-fade-up flex min-h-[32rem] flex-col rounded-2xl border border-border/70 bg-card shadow-sm">
           <div ref={listRef} className="flex-1 space-y-3.5 overflow-y-auto p-5">
-            {messages.map((m, i) => (
+            {allMessages.map((m, i) => (
               <div
                 key={i}
                 className={`animate-chat-in flex items-start gap-2.5 ${
@@ -232,7 +264,7 @@ export default function AssistantPage() {
 
         {/* Live draft */}
         <div className="animate-fade-up animation-delay-100 min-h-[32rem]">
-          <ProjectDraftPanel draft={draft} />
+          <ProjectDraftPanel draft={draft ?? seededDraft} />
         </div>
       </div>
 

@@ -126,8 +126,17 @@ def state_manager_node(state: MarketplaceState, config: RunnableConfig) -> dict:
         pincode, pincode_valid = zip_from_message, True
     elif not pivoting and state.get("pincode_valid"):
         pincode, pincode_valid = state.get("pincode"), True
-    elif not pivoting and cfg.get("pincode"):
+    elif cfg.get("pincode"):
+        # The config ZIP is the user's saved profile address, so it survives
+        # a pivot (same home, different job) -- unlike the per-request state
+        # ZIP above. An explicit ZIP in the message still wins over it.
         pincode, pincode_valid = cfg["pincode"], True
+    elif normalize_us_zip(message):
+        # Last resort before asking: the user typed a 5-digit number and the
+        # extractor missed it. Deliberately below the state/profile ZIPs, so
+        # a stray 5-digit number mid-conversation (a budget, say) can never
+        # overwrite a location we already have.
+        pincode, pincode_valid = normalize_us_zip(message), True
     else:
         pincode, pincode_valid = None, False
 
@@ -344,3 +353,11 @@ def build_intake_subgraph():
     builder.add_edge("intake_error", END)
 
     return builder.compile()
+
+
+if __name__ == "__main__":
+    # Local-only: compile the subgraph on its own and dump its mermaid
+    # diagram. Kept out of build_intake_subgraph() so importing/building it
+    # from graph/root.py stays silent.
+    print("Compiling intake subgraph... and outputing mermaid diagram to stdout")
+    print(build_intake_subgraph().get_graph().draw_mermaid())

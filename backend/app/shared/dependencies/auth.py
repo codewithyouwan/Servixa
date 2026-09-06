@@ -64,11 +64,17 @@ async def _load_user(db: AsyncSession, sub: uuid.UUID) -> UserOut:
 
     address = None
     if user.user_addr:
+        # Sign-up seeds user_addr with only {"zip_code": ...} (see
+        # db/repository/users.py); the rest of the address arrives later
+        # from the dashboard. Every key is therefore optional here, and
+        # the ZIP is read under either name -- "zip_code" as written at
+        # sign-up, "postal_code" as written by the profile form.
+        addr = user.user_addr
         address = UserAddress(
-            line1=user.user_addr.get("line1"),
-            city=user.user_addr.get("city", ""),
-            state=user.user_addr.get("state", ""),
-            postal_code=user.user_addr.get("postal_code", ""),
+            line1=addr.get("line1"),
+            city=addr.get("city", ""),
+            state=addr.get("state", ""),
+            postal_code=addr.get("zip_code") or addr.get("postal_code") or "",
             country=user.user_country or "",
         )
 

@@ -183,3 +183,11 @@ def build_routing_qa_subgraph():
     })
 
     return builder.compile()
+
+
+if __name__ == "__main__":
+    # Local-only: compile the subgraph on its own and dump its mermaid
+    # diagram. Kept out of build_routing_qa_subgraph() so importing/building it
+    # from graph/root.py stays silent.
+    print("Compiling routing_qa subgraph... and outputing mermaid diagram to stdout")
+    print(build_routing_qa_subgraph().get_graph().draw_mermaid())

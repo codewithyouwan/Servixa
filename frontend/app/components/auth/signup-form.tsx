@@ -22,6 +22,7 @@ import {
   ZipSelector,
   getSavedZip,
   isValidPostalCode,
+  normalizePostalCode,
   saveZip,
 } from "@/app/components/search/zip-selector";
 import { authService, type SelfServeRole } from "@/lib/auth";
@@ -103,6 +104,9 @@ export function SignupForm() {
         password,
         name: `${firstName.trim()} ${lastName.trim()}`,
         role: ROLE_MAP[accountType],
+        // Seeds users.user_addr with {"zip_code": ...} so the account has a
+        // location from day one (the AI assistant defaults the job there).
+        zipCode: normalizePostalCode(zip),
       });
       // Save as the profile default — search bars prefill from this.
       saveZip(zip);

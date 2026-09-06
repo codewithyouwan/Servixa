@@ -1,5 +1,5 @@
 [project]
-name = "bestbuild-api"
+name = "backend"
 version = "0.1.0"
 description = "BestBuild — AI-powered construction marketplace API (MVP) + marketplace agent"
 readme = "README.md"

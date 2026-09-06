@@ -19,6 +19,9 @@ export interface ProjectDraft {
   category: string;
   categoryLabel: string;
   pincode: string;
+  /** Human-readable job location when it's the user's saved profile
+   *  address; empty once the job moves to a different ZIP. */
+  address: string;
   collected: DraftField[];
   /** 0-100, across category + ZIP + each required field. */
   progress: number;
@@ -42,6 +45,7 @@ export const EMPTY_DRAFT: ProjectDraft = {
   category: "",
   categoryLabel: "",
   pincode: "",
+  address: "",
   collected: [],
   progress: 0,
 };
