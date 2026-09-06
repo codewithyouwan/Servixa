@@ -20,16 +20,24 @@ async def create_user(
     email: str,
     role: str,
     created_by: str,
+    zip_code: str | None = None,
 ) -> User:
     """Create the base profile row. Role-specific tables
     (service_providers, company) are filled in during profile
     completion, not here — see docs/architecture/08-aws-mvp-setup-guide.md.
+
+    user_addr is seeded with just the ZIP the sign-up form collects; the
+    rest of the address (line1/city/state) is filled in later from the
+    user's dashboard, so the JSONB starts as a one-key object rather than
+    staying null. Readers must therefore treat every other key as absent
+    (see app/shared/dependencies/auth.py).
     """
     user = User(
         user_id=user_id,
         user_name=name,
         user_email=email,
         user_type=role,
+        user_addr={"zip_code": zip_code} if zip_code else None,
         created_by=created_by,
     )
     session.add(user)

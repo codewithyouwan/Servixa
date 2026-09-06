@@ -30,6 +30,12 @@ export interface RegisterInput {
   password: string;
   name: string;
   role: SelfServeRole;
+  /**
+   * Postal code from step 1 of the sign-up form. Seeds `users.user_addr`
+   * so a brand-new account already has a location — the rest of the
+   * address is collected later from the dashboard.
+   */
+  zipCode?: string;
 }
 
 export interface RegisterResult {
