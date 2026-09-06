@@ -10,4 +10,5 @@ export const HOMEOWNER_ENDPOINTS = {
   documents: "/documents",
   document: (id: string) => `/documents/${id}`,
   serviceRecords: "/service-records",
+  aiProjectAssistant: "/ai/project-assistant",
 } as const;

@@ -2,6 +2,7 @@
 
 from app.shared.schemas.notification import ActivityOut, NotificationOut
 from app.homeowner.schemas.project import ProjectOut
+from app.homeowner.schemas.product import RecommendedProductOut
 from app.homeowner.schemas.provider import RecommendedProviderOut
 from app.homeowner.schemas.quote import QuoteOut
 from app.shared.schemas.user import CamelModel
@@ -19,5 +20,6 @@ class HomeownerDashboardOut(CamelModel):
     active_projects: list[ProjectOut]
     recent_quotes: list[QuoteOut]
     recommended_providers: list[RecommendedProviderOut]
+    recommended_products: list[RecommendedProductOut]
     notifications: list[NotificationOut]
     recent_activity: list[ActivityOut]

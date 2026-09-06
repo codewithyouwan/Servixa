@@ -1,10 +1,16 @@
 /**
- * DummyAuthService — stands in for the future FastAPI JWT flow.
+ * DummyAuthService — stands in for the FastAPI JWT flow in mock mode.
  * Resolves an authenticated mock session for the requested dev role.
  */
 
 import type { AuthSession, User, UserRole } from "@/lib/types";
-import type { AuthService, LoginCredentials, SessionOptions } from "./auth-service";
+import type {
+  AuthService,
+  LoginCredentials,
+  RegisterInput,
+  RegisterResult,
+  SessionOptions,
+} from "./auth-service";
 import { createMockSession } from "./mock-session";
 
 export class DummyAuthService implements AuthService {
@@ -43,5 +49,20 @@ export class DummyAuthService implements AuthService {
 
   async isAuthenticated(): Promise<boolean> {
     return (await this.getSession()) !== null;
+  }
+
+  async register(input: RegisterInput): Promise<RegisterResult> {
+    this.role = input.role;
+    return { userId: "mock-user-id", email: input.email, confirmationRequired: false };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- mock mode accepts any code
+  async confirmRegistration(email: string, code: string): Promise<void> {
+    // No-op — mock mode never actually requires confirmation.
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- mock mode has nothing to resend
+  async resendConfirmationCode(email: string): Promise<void> {
+    // No-op.
   }
 }

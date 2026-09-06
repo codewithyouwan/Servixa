@@ -1,3 +1,11 @@
+> **Superseded (Aug 2026):** the mechanics below (NestJS `@nestjs/passport`,
+> self-issued JWTs, a `refresh_tokens` table) were written before the
+> backend moved to FastAPI and were never built. The actual auth system
+> is AWS Cognito — see `08-aws-mvp-setup-guide.md` and the "Servixa AWS
+> Blueprint" artifact. §5 (RBAC/role model) and §6 (contractor
+> verification state machine) below are still accurate in spirit —
+> Cognito Groups now play the role that "single enum column" describes.
+
 # Authentication & User Roles — AI Construction Marketplace (MVP)
 
 CLAUDE.md leaves "Authentication" blank in the tech stack — this document proposes and justifies a concrete choice rather than leaving it open, since auth touches every other module.
