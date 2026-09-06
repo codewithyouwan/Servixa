@@ -1,12 +1,15 @@
 """Marketplace-user schemas for the admin module.
 
-These use the DATABASE vocabulary (`user_type`: homeowner | contractor |
-company), not the frontend's display roles (homeowner | service_provider |
-brand). The admin panel writes rows, so it speaks the schema's language;
-lib/admin/types.ts mirrors these names exactly.
+These use the DATABASE vocabulary, which is what `CREATE TYPE user_type`
+in db/schema.sql actually declares: homeowner | service_provider | brand.
+(It previously read homeowner | contractor | company, a vocabulary the
+enum has never accepted — every create would have failed on it.) The admin
+panel writes rows, so it speaks the schema's language; lib/admin/types.ts
+mirrors these names exactly, and lib/admin/constants.ts holds the display
+labels.
 
 A user is spread across two tables — `users` plus a type-specific child row
-(`service_providers` for contractors, `company` for companies, none for
+(`service_providers` for providers, `company` for brands, none for
 homeowners) — so these models flatten both into one payload.
 """
 
@@ -14,10 +17,10 @@ from typing import Any, Literal
 
 from pydantic import EmailStr, Field
 
-from app.admin.schemas.admin import PASSWORD_MIN_LENGTH
 from app.shared.schemas.user import CamelModel
 
-UserType = Literal["homeowner", "contractor", "company"]
+UserType = Literal["homeowner", "service_provider", "brand"]
+# `service_providers.contractor_type` — the column keeps its schema name.
 ContractorType = Literal["individual", "organization"]
 
 
@@ -37,18 +40,17 @@ class ManagedUserOut(CamelModel):
     country: str
     address: dict[str, Any]
     is_deleted: bool
-    has_password: bool
     created_at: str
     created_by: str
     updated_at: str | None = None
 
-    # Contractor-only (from `service_providers`)
+    # Provider-only (from `service_providers`)
     business_name: str | None = None
     contractor_type: ContractorType | None = None
     is_verified: bool | None = None
     avg_ratings: float | None = None
 
-    # Company-only (from `company`)
+    # Brand-only (from `company`)
     company_name: str | None = None
     company_details: dict[str, Any] | None = None
 
@@ -59,14 +61,14 @@ class ManagedUserCreate(CamelModel):
     type: UserType
     address: UserAddressIn
     country: str = "US"
-    """Optional: omit to provision an account that logs in socially instead."""
-    password: str | None = Field(default=None, min_length=PASSWORD_MIN_LENGTH)
+    # No password field: Cognito owns credentials and mails the invite with
+    # a temporary one, so no operator ever sets another account's password.
 
-    # Required when type == "contractor"
+    # Required when type == "service_provider"
     business_name: str | None = Field(default=None, max_length=150)
     contractor_type: ContractorType | None = None
 
-    # Required when type == "company"
+    # Required when type == "brand"
     company_name: str | None = None
     company_details: dict[str, Any] | None = None
 
@@ -80,7 +82,6 @@ class ManagedUserUpdate(CamelModel):
     country: str | None = None
     address: UserAddressIn | None = None
     is_deleted: bool | None = None
-    password: str | None = Field(default=None, min_length=PASSWORD_MIN_LENGTH)
 
     business_name: str | None = Field(default=None, max_length=150)
     contractor_type: ContractorType | None = None

@@ -1,15 +1,17 @@
 /**
  * Admin session storage.
  *
- * Deliberately separate from lib/auth (DummyAuthService), which fabricates a
- * mock marketplace user. The back office holds a real signed JWT, so it gets
- * its own store and never touches the mock session.
+ * Deliberately separate from lib/auth, which in mock mode fabricates a
+ * marketplace user. The back office always talks to the real API, so it keeps
+ * its own store and never reads the mock session — even though the token
+ * inside is an ordinary Cognito access token now, issued by the same
+ * POST /auth/login every other role uses.
  *
  * The token sits in localStorage, which is readable by any script on the
  * origin — the accepted trade-off of a bearer-token scheme over an httpOnly
- * cookie. Tokens are short-lived (see ADMIN_TOKEN_TTL_MINUTES) and the server
- * re-reads the admin row on every request, so a stolen token stops working as
- * soon as the account is disabled.
+ * cookie. Cognito access tokens are short-lived and the server re-reads the
+ * admin row on every request, so a stolen token stops working as soon as the
+ * account is disabled.
  */
 
 import type { AdminSession } from "@/lib/admin/types";

@@ -63,9 +63,6 @@ CREATE TABLE users (
     user_country VARCHAR(100) REFERENCES countries(code),
     user_addr JSONB,
     user_type user_type NOT NULL,
-    -- argon2id digest. NULLABLE because socially-authenticated accounts have
-    -- no password; NULL means "authenticates another way", not "unset".
-    password_hash TEXT,
     is_deleted BOOLEAN DEFAULT FALSE, -- soft delete flag to retain some info of the user (we'll delete data in the dependent tables accordingly but not from this.)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by VARCHAR(255) NOT NULL,
@@ -376,8 +373,8 @@ CREATE TABLE admins (
     admin_id uuid PRIMARY KEY ,
     admin_email VARCHAR(255) NOT NULL UNIQUE,
     full_name VARCHAR(100) NOT NULL,
-    -- argon2id digest — the back office is password-only, never social login.
-    password_hash TEXT NOT NULL,
+    -- No credential column: admins sign in through the same Cognito user
+    -- pool as everyone else (group `admin`) and admin_id IS their `sub`.
     role admin_role NOT NULL DEFAULT 'moderator',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

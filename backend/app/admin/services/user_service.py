@@ -1,264 +1,292 @@
 """Marketplace-user management — `users` plus its type-specific child row.
 
 One account spans two tables: `users` always, and then `service_providers`
-(contractors) or `company` (companies); homeowners have no child row. Since
-PostgREST gives us no cross-request transaction, creation inserts the parent
-first and compensates by deleting it if the child insert fails — so a
-half-built account is never left behind.
+(user_type='service_provider') or `company` (user_type='brand'); homeowners
+have no child row. Both writes now share the request's transaction, so a
+failed child insert rolls the parent back on its own — the compensating
+delete the PostgREST version needed is gone.
+
+Credentials are Cognito's: an admin creating a marketplace account here
+provisions the Cognito user too, the same way /auth/register does for
+self-serve signup.
 """
 
+import uuid
 from datetime import datetime, timezone
-from typing import Any
-from uuid import uuid4
+
+from botocore.exceptions import ClientError
+from sqlalchemy import or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.schemas.admin import AdminOut
 from app.admin.schemas.user import ManagedUserCreate, ManagedUserOut, ManagedUserUpdate
 from app.admin.services import audit_service
-from app.admin.services.repository import escape_filter, one_or_none, pg_errors
-from app.shared.errors import NotFoundError, ServiceError
-from app.shared.security import hash_password
-from app.shared.supabase_client import get_supabase
+from app.admin.services.repository import pg_errors
+from app.shared.errors import ConflictError, NotFoundError, ServiceError
+from app.shared.security import cognito_client
+from db.models import Company, ServiceProvider, User
 
 TABLE = "users"
 PROVIDER_TABLE = "service_providers"
 COMPANY_TABLE = "company"
-
-_SELECT = (
-    "user_id,user_name,user_email,user_country,user_addr,user_type,is_deleted,"
-    "password_hash,created_at,created_by,updated_at,"
-    f"{PROVIDER_TABLE}(business_name,contractor_type,is_verified,avg_ratings),"
-    f"{COMPANY_TABLE}(company_name,company_details)"
-)
 
 
 def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
-def to_out(row: dict[str, Any]) -> ManagedUserOut:
-    provider = one_or_none(row.get(PROVIDER_TABLE)) or {}
-    company = one_or_none(row.get(COMPANY_TABLE)) or {}
-    avg = provider.get("avg_ratings")
-
+def to_out(
+    row: User,
+    provider: ServiceProvider | None = None,
+    company: Company | None = None,
+) -> ManagedUserOut:
     return ManagedUserOut(
-        id=row["user_id"],
-        name=row["user_name"],
-        email=row["user_email"],
-        type=row["user_type"],
-        country=row["user_country"],
-        address=row.get("user_addr") or {},
-        is_deleted=bool(row.get("is_deleted")),
-        # The digest itself is selected (to derive this flag) but never returned.
-        has_password=row.get("password_hash") is not None,
-        created_at=row["created_at"],
-        created_by=row.get("created_by") or "",
-        updated_at=row.get("updated_at"),
-        business_name=provider.get("business_name"),
-        contractor_type=provider.get("contractor_type"),
-        is_verified=provider.get("is_verified"),
-        avg_ratings=float(avg) if avg is not None else None,
-        company_name=company.get("company_name"),
-        company_details=company.get("company_details"),
+        id=str(row.user_id),
+        name=row.user_name,
+        email=row.user_email,
+        type=row.user_type,
+        country=row.user_country,
+        address=row.user_addr or {},
+        is_deleted=bool(row.is_deleted),
+        created_at=row.created_at.isoformat(),
+        created_by=row.created_by or "",
+        updated_at=row.updated_at.isoformat() if row.updated_at else None,
+        business_name=provider.business_name if provider else None,
+        contractor_type=provider.contractor_type if provider else None,
+        is_verified=provider.is_verified if provider else None,
+        avg_ratings=float(provider.avg_ratings) if provider and provider.avg_ratings is not None else None,
+        company_name=company.company_name if company else None,
+        company_details=company.company_details if company else None,
     )
 
 
 def _require_child_fields(payload: ManagedUserCreate) -> None:
     """Enforce what the child tables mark NOT NULL, before we touch the DB."""
-    if payload.type == "contractor":
+    if payload.type == "service_provider":
         if not payload.business_name:
-            raise ServiceError("MISSING_FIELD", "Business name is required for contractors.")
+            raise ServiceError("MISSING_FIELD", "Business name is required for service providers.")
         if not payload.contractor_type:
-            raise ServiceError("MISSING_FIELD", "Contractor type is required for contractors.")
-    if payload.type == "company" and not payload.company_name:
-        raise ServiceError("MISSING_FIELD", "Company name is required for companies.")
+            raise ServiceError("MISSING_FIELD", "Provider type is required for service providers.")
+    if payload.type == "brand" and not payload.company_name:
+        raise ServiceError("MISSING_FIELD", "Company name is required for brands.")
 
 
-def list_users(
+async def _children(
+    db: AsyncSession, user: User
+) -> tuple[ServiceProvider | None, Company | None]:
+    """Load whichever child row this account's type implies."""
+    if user.user_type == "service_provider":
+        result = await db.execute(
+            select(ServiceProvider).where(ServiceProvider.user_id == user.user_id)
+        )
+        return result.scalar_one_or_none(), None
+    if user.user_type == "brand":
+        result = await db.execute(
+            select(Company).where(Company.company_id == user.user_id)
+        )
+        return None, result.scalar_one_or_none()
+    return None, None
+
+
+async def list_users(
+    db: AsyncSession,
     user_type: str | None = None,
     search: str | None = None,
     include_deleted: bool = False,
 ) -> list[ManagedUserOut]:
-    query = get_supabase().table(TABLE).select(_SELECT)
-
+    query = select(User)
     if user_type:
-        query = query.eq("user_type", user_type)
+        query = query.where(User.user_type == user_type)
     if not include_deleted:
-        query = query.eq("is_deleted", False)
+        query = query.where(User.is_deleted.is_(False))
     if search:
-        term = escape_filter(search.strip())
-        if term:
-            query = query.or_(f"user_name.ilike.*{term}*,user_email.ilike.*{term}*")
-
-    with pg_errors("list users"):
-        result = query.order("created_at", desc=True).execute()
-    return [to_out(row) for row in result.data]
-
-
-def get_user(user_id: str) -> ManagedUserOut:
-    with pg_errors("load user"):
-        result = (
-            get_supabase().table(TABLE).select(_SELECT).eq("user_id", user_id).limit(1).execute()
+        term = f"%{search.strip()}%"
+        query = query.where(
+            or_(User.user_name.ilike(term), User.user_email.ilike(term))
         )
-    if not result.data:
-        raise NotFoundError("User")
-    return to_out(result.data[0])
+
+    async with pg_errors("list users"):
+        result = await db.execute(query.order_by(User.created_at.desc()))
+    rows = list(result.scalars())
+
+    # One extra query per child table rather than per row: the list view is
+    # small (admin-only) but N+1 on it would still be silly.
+    provider_ids = [r.user_id for r in rows if r.user_type == "service_provider"]
+    company_ids = [r.user_id for r in rows if r.user_type == "brand"]
+    providers: dict[uuid.UUID, ServiceProvider] = {}
+    companies: dict[uuid.UUID, Company] = {}
+    if provider_ids:
+        found = await db.execute(
+            select(ServiceProvider).where(ServiceProvider.user_id.in_(provider_ids))
+        )
+        providers = {p.user_id: p for p in found.scalars()}
+    if company_ids:
+        found = await db.execute(
+            select(Company).where(Company.company_id.in_(company_ids))
+        )
+        companies = {c.company_id: c for c in found.scalars()}
+
+    return [
+        to_out(r, providers.get(r.user_id), companies.get(r.user_id)) for r in rows
+    ]
 
 
-def create_user(payload: ManagedUserCreate, actor: AdminOut) -> ManagedUserOut:
-    _require_child_fields(payload)
-
-    user_id = str(uuid4())
-    record = {
-        "user_id": user_id,
-        "user_name": payload.name,
-        "user_email": _normalize_email(payload.email),
-        "user_country": payload.country,
-        "user_addr": payload.address.model_dump(by_alias=True),
-        "user_type": payload.type,
-        "is_deleted": False,
-        "password_hash": hash_password(payload.password) if payload.password else None,
-        # created_by is VARCHAR, not a FK — record who did it, legibly.
-        "created_by": actor.email,
-        "updated_by": actor.id,
-    }
-
-    with pg_errors("create user"):
-        result = get_supabase().table(TABLE).insert(record).execute()
-
+async def _load(db: AsyncSession, user_id: str) -> User:
     try:
-        _insert_child_row(user_id, payload)
+        key = uuid.UUID(user_id)
+    except ValueError:
+        raise NotFoundError("User") from None
+    async with pg_errors("load user"):
+        result = await db.execute(select(User).where(User.user_id == key))
+    row = result.scalar_one_or_none()
+    if row is None:
+        raise NotFoundError("User")
+    return row
+
+
+async def get_user(db: AsyncSession, user_id: str) -> ManagedUserOut:
+    row = await _load(db, user_id)
+    provider, company = await _children(db, row)
+    return to_out(row, provider, company)
+
+
+async def create_user(
+    db: AsyncSession, payload: ManagedUserCreate, actor: AdminOut
+) -> ManagedUserOut:
+    _require_child_fields(payload)
+    email = _normalize_email(payload.email)
+
+    # Cognito first: if it rejects the account there is nothing to undo,
+    # whereas a DB row without a Cognito user could never sign in.
+    try:
+        sub = cognito_client.admin_create_user(email, payload.name)
+        cognito_client.add_user_to_group(email, payload.type)
+    except ClientError as exc:
+        code = exc.response["Error"]["Code"]
+        if code == "UsernameExistsException":
+            raise ConflictError("A user with that email already exists.") from exc
+        raise ServiceError(
+            "COGNITO_ERROR",
+            f"Could not create the Cognito account: {exc.response['Error']['Message']}",
+            status_code=502,
+        ) from exc
+
+    user_id = uuid.UUID(sub)
+    user = User(
+        user_id=user_id,
+        user_name=payload.name,
+        user_email=email,
+        user_country=payload.country,
+        user_addr=payload.address.model_dump(by_alias=True),
+        user_type=payload.type,
+        is_deleted=False,
+        # created_by is VARCHAR, not a FK — record who did it, legibly.
+        created_by=actor.email,
+        updated_by=uuid.UUID(actor.id),
+    )
+
+    provider: ServiceProvider | None = None
+    company: Company | None = None
+    try:
+        async with pg_errors("create user"):
+            db.add(user)
+            if payload.type == "service_provider":
+                provider = ServiceProvider(
+                    user_id=user_id,
+                    business_name=payload.business_name,
+                    contractor_type=payload.contractor_type,
+                )
+                db.add(provider)
+            elif payload.type == "brand":
+                company = Company(
+                    company_id=user_id,
+                    company_name=payload.company_name,
+                    company_details=payload.company_details or {},
+                )
+                db.add(company)
+            await db.flush()
     except Exception:
-        # Compensating delete: without it a failed child insert would leave a
-        # contractor with no service_providers row, which every provider
-        # query assumes exists.
-        get_supabase().table(TABLE).delete().eq("user_id", user_id).execute()
+        # The rows roll back with the request; the Cognito user would not.
+        try:
+            cognito_client.admin_delete_user(email)
+        except ClientError:
+            pass
         raise
 
-    audit_service.record(
-        actor.id,
-        "create_user",
-        TABLE,
-        user_id,
-        {"email": record["user_email"], "type": payload.type},
+    await audit_service.record(
+        db, actor.id, "create_user", TABLE, sub, {"email": email, "type": payload.type}
     )
-    return to_out({**result.data[0], **_child_payload_for_output(payload)})
+    await db.refresh(user)
+    return to_out(user, provider, company)
 
 
-def _insert_child_row(user_id: str, payload: ManagedUserCreate) -> None:
-    client = get_supabase()
-    if payload.type == "contractor":
-        with pg_errors("create contractor profile"):
-            client.table(PROVIDER_TABLE).insert(
-                {
-                    "user_id": user_id,
-                    "business_name": payload.business_name,
-                    "contractor_type": payload.contractor_type,
-                }
-            ).execute()
-    elif payload.type == "company":
-        with pg_errors("create company profile"):
-            client.table(COMPANY_TABLE).insert(
-                {
-                    "company_id": user_id,
-                    "company_name": payload.company_name,
-                    "company_details": payload.company_details or {},
-                }
-            ).execute()
+async def update_user(
+    db: AsyncSession, user_id: str, payload: ManagedUserUpdate, actor: AdminOut
+) -> ManagedUserOut:
+    user = await _load(db, user_id)
+    provider, company = await _children(db, user)
 
-
-def _child_payload_for_output(payload: ManagedUserCreate) -> dict[str, Any]:
-    """Echo the just-written child row so the response matches a re-read,
-    without paying for a second round trip."""
-    if payload.type == "contractor":
-        return {
-            PROVIDER_TABLE: {
-                "business_name": payload.business_name,
-                "contractor_type": payload.contractor_type,
-                "is_verified": False,
-                "avg_ratings": 0.0,
-            }
-        }
-    if payload.type == "company":
-        return {
-            COMPANY_TABLE: {
-                "company_name": payload.company_name,
-                "company_details": payload.company_details or {},
-            }
-        }
-    return {}
-
-
-def update_user(user_id: str, payload: ManagedUserUpdate, actor: AdminOut) -> ManagedUserOut:
-    existing = get_user(user_id)
-    client = get_supabase()
-
-    changes: dict[str, Any] = {}
+    changed: list[str] = []
     if payload.name is not None:
-        changes["user_name"] = payload.name
+        user.user_name = payload.name
+        changed.append("user_name")
     if payload.email is not None:
-        changes["user_email"] = _normalize_email(payload.email)
+        user.user_email = _normalize_email(payload.email)
+        changed.append("user_email")
     if payload.country is not None:
-        changes["user_country"] = payload.country
+        user.user_country = payload.country
+        changed.append("user_country")
     if payload.address is not None:
-        changes["user_addr"] = payload.address.model_dump(by_alias=True)
+        user.user_addr = payload.address.model_dump(by_alias=True)
+        changed.append("user_addr")
     if payload.is_deleted is not None:
-        changes["is_deleted"] = payload.is_deleted
-    if payload.password is not None:
-        changes["password_hash"] = hash_password(payload.password)
+        user.is_deleted = payload.is_deleted
+        changed.append("is_deleted")
 
-    if changes:
-        changes["updated_at"] = datetime.now(timezone.utc).isoformat()
-        changes["updated_by"] = actor.id
-        with pg_errors("update user"):
-            client.table(TABLE).update(changes).eq("user_id", user_id).execute()
+    changed += _apply_child_changes(user, provider, company, payload)
 
-    child_changes = _update_child_row(existing, payload)
+    if not changed:
+        return to_out(user, provider, company)
 
-    if not changes and not child_changes:
-        return existing
+    user.updated_at = datetime.now(timezone.utc)
+    user.updated_by = uuid.UUID(actor.id)
+    async with pg_errors("update user"):
+        await db.flush()
 
-    audit_service.record(
-        actor.id,
-        "update_user",
-        TABLE,
-        user_id,
-        {
-            "fields": sorted(k for k in changes if k != "password_hash") + child_changes,
-            "password_changed": payload.password is not None,
-        },
+    await audit_service.record(
+        db, actor.id, "update_user", TABLE, user_id, {"fields": sorted(changed)}
     )
-    return get_user(user_id)
+    return to_out(user, provider, company)
 
 
-def _update_child_row(existing: ManagedUserOut, payload: ManagedUserUpdate) -> list[str]:
+def _apply_child_changes(
+    user: User,
+    provider: ServiceProvider | None,
+    company: Company | None,
+    payload: ManagedUserUpdate,
+) -> list[str]:
     """Patch the type-specific row. Returns the field names actually written."""
-    client = get_supabase()
+    changed: list[str] = []
 
-    if existing.type == "contractor":
-        changes: dict[str, Any] = {}
+    if user.user_type == "service_provider" and provider is not None:
         if payload.business_name is not None:
-            changes["business_name"] = payload.business_name
+            provider.business_name = payload.business_name
+            changed.append("business_name")
         if payload.contractor_type is not None:
-            changes["contractor_type"] = payload.contractor_type
+            provider.contractor_type = payload.contractor_type
+            changed.append("contractor_type")
         if payload.is_verified is not None:
-            changes["is_verified"] = payload.is_verified
-        if not changes:
-            return []
-        changes["updated_at"] = datetime.now(timezone.utc).isoformat()
-        with pg_errors("update contractor profile"):
-            client.table(PROVIDER_TABLE).update(changes).eq("user_id", existing.id).execute()
-        return sorted(k for k in changes if k != "updated_at")
+            provider.is_verified = payload.is_verified
+            changed.append("is_verified")
+        if changed:
+            provider.updated_at = datetime.now(timezone.utc)
 
-    if existing.type == "company":
-        changes = {}
+    elif user.user_type == "brand" and company is not None:
         if payload.company_name is not None:
-            changes["company_name"] = payload.company_name
+            company.company_name = payload.company_name
+            changed.append("company_name")
         if payload.company_details is not None:
-            changes["company_details"] = payload.company_details
-        if not changes:
-            return []
-        with pg_errors("update company profile"):
-            client.table(COMPANY_TABLE).update(changes).eq("company_id", existing.id).execute()
-        return sorted(changes)
+            company.company_details = payload.company_details
+            changed.append("company_details")
 
-    return []
+    return changed

@@ -110,3 +110,51 @@ def refresh(refresh_token: str, email: str) -> dict:
 
 def logout(access_token: str) -> None:
     _client.global_sign_out(AccessToken=access_token)
+
+
+def admin_create_user(email: str, name: str) -> str:
+    """Create a user without the self-signup flow. Returns the `sub`.
+
+    This is the API form of the blueprint's `aws cognito-idp
+    admin-create-user` call (docs/architecture/08-aws-mvp-setup-guide.md
+    §6), used by the back office to provision staff accounts. Cognito
+    generates the temporary password and emails the invite, so no operator
+    ever handles another operator's credentials. The email is marked
+    verified because an invited account has no self-serve confirm step.
+
+    No SECRET_HASH here: admin_* APIs authenticate with the caller's AWS
+    credentials, not the app client secret.
+    """
+    resp = _client.admin_create_user(
+        UserPoolId=settings.cognito_user_pool_id,
+        Username=email,
+        UserAttributes=[
+            {"Name": "name", "Value": name},
+            {"Name": "email", "Value": email},
+            {"Name": "email_verified", "Value": "true"},
+        ],
+    )
+    for attribute in resp["User"]["Attributes"]:
+        if attribute["Name"] == "sub":
+            return attribute["Value"]
+    raise KeyError("Cognito returned no sub for the created user")
+
+
+def admin_delete_user(email: str) -> None:
+    """Remove a Cognito user. Used to undo a half-built account."""
+    _client.admin_delete_user(
+        UserPoolId=settings.cognito_user_pool_id,
+        Username=email,
+    )
+
+
+def get_user_sub(email: str) -> str:
+    """Look up an existing Cognito user's `sub`."""
+    resp = _client.admin_get_user(
+        UserPoolId=settings.cognito_user_pool_id,
+        Username=email,
+    )
+    for attribute in resp["UserAttributes"]:
+        if attribute["Name"] == "sub":
+            return attribute["Value"]
+    raise KeyError(f"Cognito user {email} has no sub attribute")

@@ -1,14 +1,17 @@
 /**
  * Admin module domain types — mirror backend/app/admin/schemas/.
  *
- * These use the DATABASE vocabulary for accounts (`UserType`: homeowner |
- * contractor | company), not the display roles in lib/types/user.ts
- * (homeowner | service_provider | brand). The back office writes rows, so it
- * speaks the schema's language.
+ * These use the DATABASE vocabulary for accounts, which is what
+ * `CREATE TYPE user_type` in backend/db/schema.sql declares: homeowner |
+ * service_provider | brand. The back office writes rows, so it speaks the
+ * schema's language; display labels live in lib/admin/constants.ts.
+ *
+ * No password fields anywhere: Cognito owns credentials for admins and
+ * marketplace users alike.
  */
 
 export type AdminRole = "super_admin" | "support_admin" | "moderator";
-export type UserType = "homeowner" | "contractor" | "company";
+export type UserType = "homeowner" | "service_provider" | "brand";
 export type ContractorType = "individual" | "organization";
 
 export interface Admin {
@@ -22,10 +25,15 @@ export interface Admin {
 }
 
 export interface AdminSession {
+  /** The Cognito access token, verified server-side on every request. */
   accessToken: string;
-  /** Epoch ms. */
+  /** Epoch ms, derived from Cognito's expiresIn. */
   expiresAt: number;
-  admin: Admin;
+  /**
+   * Null only in the moment between logging in and confirming back-office
+   * access — AdminAuthService.login fills it in or clears the session.
+   */
+  admin: Admin | null;
 }
 
 export interface UserAddress {
@@ -44,8 +52,6 @@ export interface ManagedUser {
   country: string;
   address: Partial<UserAddress>;
   isDeleted: boolean;
-  /** False for accounts provisioned without a password (social login only). */
-  hasPassword: boolean;
   createdAt: string;
   createdBy: string;
   updatedAt: string | null;
@@ -56,7 +62,7 @@ export interface ManagedUser {
   isVerified?: boolean | null;
   avgRatings?: number | null;
 
-  // Company-only
+  // Brand-only (from `company`)
   companyName?: string | null;
   companyDetails?: Record<string, unknown> | null;
 }
@@ -67,7 +73,6 @@ export interface ManagedUserCreate {
   type: UserType;
   address: UserAddress;
   country: string;
-  password?: string;
   businessName?: string;
   contractorType?: ContractorType;
   companyName?: string;
@@ -81,7 +86,6 @@ export type ManagedUserUpdate = Partial<
 export interface AdminCreate {
   email: string;
   fullName: string;
-  password: string;
   role: AdminRole;
 }
 

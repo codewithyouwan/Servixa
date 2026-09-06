@@ -45,7 +45,7 @@ api_router.include_router(crm.router)
 # Brand module
 api_router.include_router(brand.router)
 
-# Admin (back office) module — the only module backed by the real database.
+# Admin (back office) module
 api_router.include_router(admin_auth.router)
 api_router.include_router(admin_users.router)
 api_router.include_router(admin_admins.router)

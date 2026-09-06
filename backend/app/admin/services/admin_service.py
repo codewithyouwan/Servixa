@@ -1,36 +1,42 @@
 """Admin account management — the `admins` table.
 
-Credentials live here (argon2id in `password_hash`), so this module is the
-only place that reads that column. It never leaves in a response: every
-return path goes through `to_out`, which projects a safe subset.
+Credentials are Cognito's, not ours: `admins.admin_id` IS the Cognito
+`sub`, exactly like `users.user_id` (see
+docs/architecture/08-aws-mvp-setup-guide.md §6). Creating an admin here
+does what the blueprint's `aws cognito-idp admin-create-user` call does,
+then records the profile row. There is no password column left to read,
+so nothing in this module can leak one.
 """
 
+import uuid
 from datetime import datetime, timezone
-from typing import Any
-from uuid import uuid4
+
+from botocore.exceptions import ClientError
+from sqlalchemy import or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.schemas.admin import AdminCreate, AdminOut, AdminUpdate
 from app.admin.services import audit_service
-from app.admin.services.repository import escape_filter, pg_errors
-from app.shared.errors import NotFoundError, ServiceError
-from app.shared.security import hash_password, verify_password
-from app.shared.supabase_client import get_supabase
+from app.admin.services.repository import pg_errors
+from app.shared.errors import ConflictError, NotFoundError, ServiceError
+from app.shared.security import cognito_client
+from db.models import Admin
 
 TABLE = "admins"
 
-# Everything except password_hash — the column must not reach a response.
-_PUBLIC_COLUMNS = "admin_id,admin_email,full_name,role,is_active,created_at,updated_at"
+# The Cognito group whose members this app treats as back-office staff.
+ADMIN_GROUP = "admin"
 
 
-def to_out(row: dict[str, Any]) -> AdminOut:
+def to_out(row: Admin) -> AdminOut:
     return AdminOut(
-        id=row["admin_id"],
-        email=row["admin_email"],
-        full_name=row["full_name"],
-        role=row["role"],
-        is_active=row["is_active"],
-        created_at=row["created_at"],
-        updated_at=row["updated_at"],
+        id=str(row.admin_id),
+        email=row.admin_email,
+        full_name=row.full_name,
+        role=row.role,
+        is_active=row.is_active,
+        created_at=row.created_at.isoformat(),
+        updated_at=row.updated_at.isoformat(),
     )
 
 
@@ -40,122 +46,118 @@ def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
-def list_admins(search: str | None = None) -> list[AdminOut]:
-    query = get_supabase().table(TABLE).select(_PUBLIC_COLUMNS)
+async def list_admins(db: AsyncSession, search: str | None = None) -> list[AdminOut]:
+    query = select(Admin)
     if search:
-        term = escape_filter(search.strip())
-        if term:
-            query = query.or_(f"full_name.ilike.*{term}*,admin_email.ilike.*{term}*")
-    with pg_errors("list admins"):
-        result = query.order("created_at", desc=True).execute()
-    return [to_out(row) for row in result.data]
-
-
-def get_admin(admin_id: str) -> AdminOut:
-    with pg_errors("load admin"):
-        result = (
-            get_supabase()
-            .table(TABLE)
-            .select(_PUBLIC_COLUMNS)
-            .eq("admin_id", admin_id)
-            .limit(1)
-            .execute()
+        term = f"%{search.strip()}%"
+        query = query.where(
+            or_(Admin.full_name.ilike(term), Admin.admin_email.ilike(term))
         )
-    if not result.data:
+    async with pg_errors("list admins"):
+        result = await db.execute(query.order_by(Admin.created_at.desc()))
+    return [to_out(row) for row in result.scalars()]
+
+
+async def _load(db: AsyncSession, admin_id: str) -> Admin:
+    try:
+        key = uuid.UUID(admin_id)
+    except ValueError:
+        raise NotFoundError("Admin") from None
+    async with pg_errors("load admin"):
+        result = await db.execute(select(Admin).where(Admin.admin_id == key))
+    row = result.scalar_one_or_none()
+    if row is None:
         raise NotFoundError("Admin")
-    return to_out(result.data[0])
+    return row
 
 
-def authenticate(email: str, password: str) -> AdminOut:
-    """Verify credentials. Raises on bad email, bad password, or inactive."""
-    with pg_errors("authenticate"):
-        result = (
-            get_supabase()
-            .table(TABLE)
-            .select(f"{_PUBLIC_COLUMNS},password_hash")
-            .eq("admin_email", _normalize_email(email))
-            .limit(1)
-            .execute()
-        )
+async def get_admin(db: AsyncSession, admin_id: str) -> AdminOut:
+    return to_out(await _load(db, admin_id))
 
-    invalid = ServiceError("INVALID_CREDENTIALS", "Incorrect email or password.", 401)
 
-    # Same error for "no such admin" and "wrong password" so the response
-    # can't be used to enumerate which admin emails exist.
-    if not result.data:
-        raise invalid
-    row = result.data[0]
-    if not verify_password(password, row["password_hash"]):
-        raise invalid
-    if not row["is_active"]:
-        raise ServiceError("ACCOUNT_DISABLED", "This admin account is disabled.", 403)
+async def create_admin(db: AsyncSession, payload: AdminCreate, actor: AdminOut) -> AdminOut:
+    """Provision the Cognito account, then its profile row.
 
+    Cognito generates the temporary password and emails the invite — no
+    operator ever types another operator's password. If the profile insert
+    fails the Cognito user is deleted again, so a half-built admin (able to
+    sign in, but with no `admins` row to authorize against) is never left
+    behind.
+    """
+    email = _normalize_email(payload.email)
+
+    try:
+        sub = cognito_client.admin_create_user(email, payload.full_name)
+        cognito_client.add_user_to_group(email, ADMIN_GROUP)
+    except ClientError as exc:
+        code = exc.response["Error"]["Code"]
+        if code == "UsernameExistsException":
+            raise ConflictError("An admin with that email already exists.") from exc
+        raise ServiceError(
+            "COGNITO_ERROR",
+            f"Could not create the Cognito account: {exc.response['Error']['Message']}",
+            status_code=502,
+        ) from exc
+
+    row = Admin(
+        admin_id=uuid.UUID(sub),
+        admin_email=email,
+        full_name=payload.full_name,
+        role=payload.role,
+        is_active=True,
+    )
+    try:
+        async with pg_errors("create admin"):
+            db.add(row)
+            await db.flush()
+    except Exception:
+        # Compensating delete — see the docstring.
+        try:
+            cognito_client.admin_delete_user(email)
+        except ClientError:
+            pass
+        raise
+
+    await audit_service.record(
+        db, actor.id, "create_admin", TABLE, sub, {"email": email, "role": payload.role}
+    )
+    await db.refresh(row)
     return to_out(row)
 
 
-def create_admin(payload: AdminCreate, actor: AdminOut) -> AdminOut:
-    admin_id = str(uuid4())
-    record = {
-        "admin_id": admin_id,
-        "admin_email": _normalize_email(payload.email),
-        "full_name": payload.full_name,
-        "password_hash": hash_password(payload.password),
-        "role": payload.role,
-        "is_active": True,
-    }
-    with pg_errors("create admin"):
-        result = get_supabase().table(TABLE).insert(record).execute()
-
-    audit_service.record(
-        actor.id, "create_admin", TABLE, admin_id, {"email": record["admin_email"], "role": payload.role}
-    )
-    return to_out(result.data[0])
-
-
-def update_admin(admin_id: str, payload: AdminUpdate, actor: AdminOut) -> AdminOut:
-    existing = get_admin(admin_id)
+async def update_admin(
+    db: AsyncSession, admin_id: str, payload: AdminUpdate, actor: AdminOut
+) -> AdminOut:
+    existing = await _load(db, admin_id)
 
     # An admin editing themselves must not be able to remove their own
     # access — that would need another super admin to undo, and there may
     # not be one. Other admins can still deactivate or demote them.
-    if admin_id == actor.id:
+    if str(existing.admin_id) == actor.id:
         if payload.is_active is False:
             raise ServiceError("SELF_DEACTIVATION", "You cannot deactivate your own account.")
         if payload.role is not None and payload.role != existing.role:
             raise ServiceError("SELF_ROLE_CHANGE", "You cannot change your own role.")
 
-    changes: dict[str, Any] = {}
+    changed: list[str] = []
     if payload.full_name is not None:
-        changes["full_name"] = payload.full_name
+        existing.full_name = payload.full_name
+        changed.append("full_name")
     if payload.role is not None:
-        changes["role"] = payload.role
+        existing.role = payload.role
+        changed.append("role")
     if payload.is_active is not None:
-        changes["is_active"] = payload.is_active
-    if payload.password is not None:
-        changes["password_hash"] = hash_password(payload.password)
+        existing.is_active = payload.is_active
+        changed.append("is_active")
 
-    if not changes:
-        return existing
+    if not changed:
+        return to_out(existing)
 
-    changes["updated_at"] = datetime.now(timezone.utc).isoformat()
-    with pg_errors("update admin"):
-        result = (
-            get_supabase()
-            .table(TABLE)
-            .update(changes)
-            .eq("admin_id", admin_id)
-            .execute()
-        )
-    if not result.data:
-        raise NotFoundError("Admin")
+    existing.updated_at = datetime.now(timezone.utc)
+    async with pg_errors("update admin"):
+        await db.flush()
 
-    audit_service.record(
-        actor.id,
-        "update_admin",
-        TABLE,
-        admin_id,
-        # Never log the hash itself — just note that the credential rotated.
-        {"fields": sorted(k for k in changes if k != "password_hash"),
-         "password_changed": payload.password is not None},
+    await audit_service.record(
+        db, actor.id, "update_admin", TABLE, admin_id, {"fields": sorted(changed)}
     )
-    return to_out(result.data[0])
+    return to_out(existing)

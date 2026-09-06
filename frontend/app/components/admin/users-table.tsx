@@ -24,11 +24,11 @@ function formatDate(iso: string): string {
 
 /** The type-specific line under the name — different table per account type. */
 function detailFor(user: ManagedUser): string | null {
-  if (user.type === "contractor" && user.businessName) {
+  if (user.type === "service_provider" && user.businessName) {
     const kind = user.contractorType ? CONTRACTOR_TYPE_LABELS[user.contractorType] : null;
     return kind ? `${user.businessName} · ${kind}` : user.businessName;
   }
-  if (user.type === "company") return user.companyName ?? null;
+  if (user.type === "brand") return user.companyName ?? null;
   return null;
 }
 
@@ -73,15 +73,10 @@ export function UsersTable({ users, onEdit, onToggleActive, onToggleVerified, bu
                     ) : (
                       <Badge variant="secondary">Active</Badge>
                     )}
-                    {user.type === "contractor" && user.isVerified && (
+                    {user.type === "service_provider" && user.isVerified && (
                       <Badge variant="outline" className="gap-1">
                         <BadgeCheck className="size-3" aria-hidden />
                         Verified
-                      </Badge>
-                    )}
-                    {!user.hasPassword && (
-                      <Badge variant="outline" className="text-muted-foreground">
-                        No password
                       </Badge>
                     )}
                   </div>
@@ -108,7 +103,7 @@ export function UsersTable({ users, onEdit, onToggleActive, onToggleVerified, bu
                         <Pencil className="size-4" aria-hidden />
                         Edit
                       </DropdownMenuItem>
-                      {user.type === "contractor" && (
+                      {user.type === "service_provider" && (
                         <DropdownMenuItem onClick={() => onToggleVerified(user)}>
                           {user.isVerified ? (
                             <>

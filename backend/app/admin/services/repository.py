@@ -1,14 +1,15 @@
-"""PostgREST plumbing shared by the admin services.
+"""SQLAlchemy plumbing shared by the admin services.
 
-Two jobs: turn Postgres error codes into ServiceErrors the frontend can act
-on, and keep filter-string building safe. Everything here is transport
-detail — the services above it deal in domain terms.
+One job now: turn Postgres constraint violations into ServiceErrors the
+frontend can act on. The PostgREST filter-escaping helpers this module used
+to carry are gone — SQLAlchemy sends user input as bound parameters, so a
+search term can no longer rewrite the query.
 """
 
-from contextlib import contextmanager
-from typing import Any, Iterator
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
 
-from postgrest.exceptions import APIError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.shared.errors import ConflictError, ServiceError
 
@@ -26,18 +27,23 @@ _CONSTRAINT_MESSAGES = {
 }
 
 
-@contextmanager
-def pg_errors(context: str) -> Iterator[None]:
-    """Translate PostgREST failures into ServiceErrors.
+def _sqlstate(exc: SQLAlchemyError) -> str | None:
+    """asyncpg exposes the SQLSTATE on the wrapped driver error."""
+    return getattr(getattr(exc, "orig", None), "sqlstate", None)
+
+
+@asynccontextmanager
+async def pg_errors(context: str) -> AsyncIterator[None]:
+    """Translate database failures into ServiceErrors.
 
     `context` names the operation ("create user") for messages we can't
     explain more precisely.
     """
     try:
         yield
-    except APIError as exc:
-        code = getattr(exc, "code", None)
-        details = f"{getattr(exc, 'message', '')} {getattr(exc, 'details', '') or ''}"
+    except IntegrityError as exc:
+        code = _sqlstate(exc)
+        details = str(getattr(exc, "orig", exc))
 
         if code == _UNIQUE_VIOLATION:
             for constraint, message in _CONSTRAINT_MESSAGES.items():
@@ -62,29 +68,9 @@ def pg_errors(context: str) -> Iterator[None]:
             ) from exc
 
         raise ServiceError(
-            "DATABASE_ERROR",
-            f"Could not {context}: {getattr(exc, 'message', 'database error')}",
-            status_code=502,
+            "DATABASE_ERROR", f"Could not {context}: {details}", status_code=502
         ) from exc
-
-
-def escape_filter(value: str) -> str:
-    """Strip the characters that terminate a PostgREST filter expression.
-
-    `or_("a.ilike.*x*,b.ilike.*x*")` is a mini-language: commas separate
-    branches, parens group them, and `*` is the wildcard. Leaving user input
-    unescaped would let a search box rewrite the query.
-    """
-    return "".join(ch for ch in value if ch not in ",()*\\")
-
-
-def one_or_none(embedded: Any) -> dict[str, Any] | None:
-    """Normalize a PostgREST embedded resource to a single row or None.
-
-    Embeds come back as an object for a detected one-to-one relationship and
-    as an array otherwise; which one depends on how PostgREST introspected
-    the FK, so accept both.
-    """
-    if isinstance(embedded, list):
-        return embedded[0] if embedded else None
-    return embedded or None
+    except SQLAlchemyError as exc:
+        raise ServiceError(
+            "DATABASE_ERROR", f"Could not {context}: database error", status_code=502
+        ) from exc

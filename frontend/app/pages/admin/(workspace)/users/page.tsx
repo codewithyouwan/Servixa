@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-xl font-semibold">Users</h1>
           <p className="text-sm text-muted-foreground">
-            Homeowners, contractors, and companies on the marketplace.
+            Homeowners, service providers, and brands on the marketplace.
           </p>
         </div>
         <Button onClick={openCreate}>

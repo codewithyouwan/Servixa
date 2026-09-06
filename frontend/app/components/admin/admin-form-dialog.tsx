@@ -7,7 +7,6 @@ import { useState, type FormEvent } from "react";
 import {
   ADMIN_ROLE_DESCRIPTIONS,
   ADMIN_ROLE_LABELS,
-  PASSWORD_MIN_LENGTH,
 } from "@/lib/admin/constants";
 import { AdminAccountService } from "@/lib/admin/service";
 import type { Admin, AdminRole } from "@/lib/admin/types";
@@ -76,7 +75,6 @@ function AdminForm({
 
   const [fullName, setFullName] = useState(admin?.fullName ?? "");
   const [email, setEmail] = useState(admin?.email ?? "");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<AdminRole>(admin?.role ?? "moderator");
   const [isActive, setIsActive] = useState(admin?.isActive ?? true);
   const [error, setError] = useState<string | null>(null);
@@ -92,10 +90,9 @@ function AdminForm({
           fullName,
           // The server rejects self role/status changes; don't even send them.
           ...(isSelf ? {} : { role, isActive }),
-          ...(password ? { password } : {}),
         });
       } else {
-        await AdminAccountService.create({ email, fullName, password, role });
+        await AdminAccountService.create({ email, fullName, role });
       }
       onSaved();
       onOpenChange(false);
@@ -142,26 +139,13 @@ function AdminForm({
           </Field>
         )}
 
-        <Field
-          label={isEdit ? "New password" : "Password"}
-          htmlFor="admin-password"
-          required={!isEdit}
-          hint={
-            isEdit
-              ? "Leave blank to keep the current password."
-              : `At least ${PASSWORD_MIN_LENGTH} characters.`
-          }
-        >
-          <Input
-            id="admin-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required={!isEdit}
-            minLength={!isEdit || password ? PASSWORD_MIN_LENGTH : undefined}
-            autoComplete="new-password"
-          />
-        </Field>
+        {/* No password field: Cognito provisions the account and emails a
+            temporary password, and resets go through Cognito's own flow. */}
+        {!isEdit && (
+          <p className="text-sm text-muted-foreground">
+            We&apos;ll email this address an invite with a temporary password.
+          </p>
+        )}
 
         <Field label="Role" htmlFor="admin-role" required hint={ADMIN_ROLE_DESCRIPTIONS[role]}>
           <Select

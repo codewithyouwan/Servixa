@@ -10,7 +10,6 @@ import { useState, type FormEvent } from "react";
 
 import {
   CONTRACTOR_TYPE_LABELS,
-  PASSWORD_MIN_LENGTH,
   SUPPORTED_COUNTRIES,
   USER_TYPE_LABELS,
 } from "@/lib/admin/constants";
@@ -40,7 +39,6 @@ interface UserFormState {
   name: string;
   email: string;
   type: UserType;
-  password: string;
   country: string;
   line1: string;
   city: string;
@@ -56,7 +54,6 @@ const EMPTY: UserFormState = {
   name: "",
   email: "",
   type: "homeowner",
-  password: "",
   country: "US",
   line1: "",
   city: "",
@@ -151,16 +148,14 @@ function UserForm({
           email: form.email,
           country: form.country,
           address,
-          // Blank means "leave the current password alone".
-          ...(form.password ? { password: form.password } : {}),
-          ...(user.type === "contractor"
+          ...(user.type === "service_provider"
             ? {
                 businessName: form.businessName,
                 contractorType: form.contractorType,
                 isVerified: form.isVerified,
               }
             : {}),
-          ...(user.type === "company" ? { companyName: form.companyName } : {}),
+          ...(user.type === "brand" ? { companyName: form.companyName } : {}),
         });
       } else {
         await AdminUserService.create({
@@ -169,11 +164,10 @@ function UserForm({
           type: form.type,
           country: form.country,
           address,
-          ...(form.password ? { password: form.password } : {}),
-          ...(form.type === "contractor"
+          ...(form.type === "service_provider"
             ? { businessName: form.businessName, contractorType: form.contractorType }
             : {}),
-          ...(form.type === "company" ? { companyName: form.companyName } : {}),
+          ...(form.type === "brand" ? { companyName: form.companyName } : {}),
         });
       }
       onSaved();
@@ -264,26 +258,15 @@ function UserForm({
           </Field>
         </div>
 
-        <Field
-          label={isEdit ? "New password" : "Password"}
-          htmlFor="user-password"
-          hint={
-            isEdit
-              ? "Leave blank to keep the current password."
-              : `Optional. At least ${PASSWORD_MIN_LENGTH} characters. Leave blank for a social-login-only account.`
-          }
-        >
-          <Input
-            id="user-password"
-            type="password"
-            value={form.password}
-            onChange={(e) => set("password", e.target.value)}
-            minLength={form.password ? PASSWORD_MIN_LENGTH : undefined}
-            autoComplete="new-password"
-          />
-        </Field>
+        {/* No password field: Cognito provisions the account and emails a
+            temporary password, the same as self-serve signup. */}
+        {!isEdit && (
+          <p className="text-sm text-muted-foreground">
+            We&apos;ll email this address an invite with a temporary password.
+          </p>
+        )}
 
-        {activeType === "contractor" && (
+        {activeType === "service_provider" && (
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Business name" htmlFor="business-name" required>
               <Input
@@ -324,7 +307,7 @@ function UserForm({
           </div>
         )}
 
-        {activeType === "company" && (
+        {activeType === "brand" && (
           <Field label="Company name" htmlFor="company-name" required>
             <Input
               id="company-name"

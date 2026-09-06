@@ -1,12 +1,18 @@
 """Admin audit trail — every back-office mutation lands in admin_audit_logs."""
 
+import logging
+import uuid
 from typing import Any
-from uuid import uuid4
 
-from app.shared.supabase_client import get_supabase
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from db.models import AdminAuditLog
+
+log = logging.getLogger(__name__)
 
 
-def record(
+async def record(
+    db: AsyncSession,
     admin_id: str,
     action_type: str,
     target_table: str,
@@ -15,22 +21,26 @@ def record(
 ) -> None:
     """Append one audit entry.
 
-    Deliberately best-effort: a failed *log* must not roll back a mutation
-    that already succeeded, since the audit row is not in the same
-    transaction as the write it describes (PostgREST gives us no shared
-    transaction). Losing an audit line is bad; losing the operator's work
-    because logging hiccuped is worse.
+    Deliberately best-effort: a failed *log* must not sink a mutation the
+    operator already completed. Unlike the PostgREST version this runs in
+    the request's own transaction, so a failure here would roll the write
+    back too — hence the rollback-free `begin_nested` savepoint, which
+    contains the damage to the audit insert alone.
     """
     try:
-        get_supabase().table("admin_audit_logs").insert(
-            {
-                "log_id": str(uuid4()),
-                "admin_id": admin_id,
-                "action_type": action_type,
-                "target_table": target_table,
-                "target_id": target_id,
-                "details": details or {},
-            }
-        ).execute()
+        async with db.begin_nested():
+            db.add(
+                AdminAuditLog(
+                    log_id=uuid.uuid4(),
+                    admin_id=uuid.UUID(admin_id),
+                    action_type=action_type,
+                    target_table=target_table,
+                    target_id=uuid.UUID(target_id),
+                    details=details or {},
+                )
+            )
     except Exception:  # noqa: BLE001 — see docstring
-        pass
+        log.warning(
+            "admin audit log failed (admin=%s action=%s target=%s/%s)",
+            admin_id, action_type, target_table, target_id, exc_info=True,
+        )

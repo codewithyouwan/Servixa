@@ -9,8 +9,8 @@ export const ADMIN_ROUTES = {
 
 export const USER_TYPE_LABELS: Record<UserType, string> = {
   homeowner: "Homeowner",
-  contractor: "Contractor",
-  company: "Company",
+  service_provider: "Service Provider",
+  brand: "Brand",
 };
 
 export const CONTRACTOR_TYPE_LABELS: Record<ContractorType, string> = {
@@ -30,8 +30,6 @@ export const ADMIN_ROLE_DESCRIPTIONS: Record<AdminRole, string> = {
   moderator: "Manages marketplace users; cannot manage admins.",
 };
 
-/** Mirrors PASSWORD_MIN_LENGTH in backend/app/admin/schemas/admin.py. */
-export const PASSWORD_MIN_LENGTH = 10;
 
 /**
  * Only the US is seeded in `countries` (migration 001), and users.user_country

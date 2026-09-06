@@ -14,14 +14,41 @@ import type {
   UserListParams,
 } from "@/lib/admin/types";
 
+/** What POST /auth/login returns — Cognito's token set. */
+interface TokenPair {
+  accessToken: string;
+  idToken: string;
+  refreshToken?: string | null;
+  /** Seconds until the access token expires. */
+  expiresIn: number;
+}
+
 export const AdminAuthService = {
+  /**
+   * Two steps, because Cognito authenticates but does not authorize: the
+   * shared login proves who you are, and /admin/auth/me is what says the
+   * account is an active admin. The token is stored between them so the
+   * probe can carry it; a non-admin gets 403 there and the token is dropped
+   * again, so nothing is left behind for a rejected sign-in.
+   */
   async login(email: string, password: string): Promise<AdminSession> {
-    const { data } = await adminApiClient.request<AdminSession>(ADMIN_ENDPOINTS.login, {
-      method: "POST",
-      body: { email, password },
-    });
-    adminSession.set(data);
-    return data;
+    const { data: tokens } = await adminApiClient.request<TokenPair>(
+      ADMIN_ENDPOINTS.login,
+      { method: "POST", body: { email, password } },
+    );
+
+    const expiresAt = Date.now() + tokens.expiresIn * 1000;
+    adminSession.set({ accessToken: tokens.accessToken, expiresAt, admin: null });
+
+    try {
+      const admin = await this.me();
+      const session: AdminSession = { accessToken: tokens.accessToken, expiresAt, admin };
+      adminSession.set(session);
+      return session;
+    } catch (err) {
+      adminSession.clear();
+      throw err;
+    }
   },
 
   /** Validates the stored token server-side; also picks up role changes. */

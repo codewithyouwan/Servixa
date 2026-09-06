@@ -3,7 +3,7 @@
 Mirrors db/schema.sql exactly. schema.sql (applied directly via psql) is
 the source of truth for the database; these models are for querying and
 inserting from the app, not for generating migrations. `countries`,
-`users`, and `projects` are modeled here — add more as other features
+`users`, `projects` and the back-office tables are modeled here — add more as other features
 move off mock data (see docs/architecture/08-aws-mvp-setup-guide.md).
 Schema changes beyond the initial create live as numbered files in
 db/migrations/ (run manually via psql — see db/migrations/001_projects_intake.sql).
@@ -12,7 +12,19 @@ db/migrations/ (run manually via psql — see db/migrations/001_projects_intake.
 import uuid
 from datetime import datetime, timedelta
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Interval, SmallInteger, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Interval,
+    Numeric,
+    SmallInteger,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -128,5 +140,97 @@ class Project(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+# ===========================================================================
+# Back-office tables (admin panel)
+# ===========================================================================
+
+# Matches `CREATE TYPE admin_role AS ENUM (...)` in schema.sql.
+AdminRoleEnum = Enum(
+    "super_admin",
+    "support_admin",
+    "moderator",
+    name="admin_role",
+    create_type=False,
+)
+
+# Matches `CREATE TYPE contractor_type AS ENUM (...)` in schema.sql.
+ContractorTypeEnum = Enum(
+    "individual",
+    "organization",
+    name="contractor_type",
+    create_type=False,
+)
+
+
+class Admin(Base):
+    __tablename__ = "admins"
+
+    # Like users.user_id, this IS the Cognito `sub` — admins sign in through
+    # the same user pool (group `admin`), so there is no password column and
+    # no separate identity to reconcile.
+    admin_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    admin_email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    full_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    role: Mapped[str] = mapped_column(AdminRoleEnum, nullable=False, default="moderator")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class ServiceProvider(Base):
+    """The `service_providers` child row every user_type='service_provider'
+    account carries."""
+
+    __tablename__ = "service_providers"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
+    )
+    business_name: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
+    contractor_type: Mapped[str] = mapped_column(ContractorTypeEnum, nullable=False)
+    avg_ratings: Mapped[float | None] = mapped_column(Numeric(3, 2), default=0.00)
+    is_verified: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class Company(Base):
+    """The `company` child row every user_type='brand' account carries.
+
+    Table and PK are named `company`/`company_id` in schema.sql even though
+    the user_type is 'brand' — kept as-is rather than renamed, since
+    schema.sql is the source of truth.
+    """
+
+    __tablename__ = "company"
+
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
+    )
+    company_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    company_details: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
+
+class AdminAuditLog(Base):
+    __tablename__ = "admin_audit_logs"
+
+    log_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    admin_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("admins.admin_id", ondelete="CASCADE"), nullable=False
+    )
+    action_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    target_table: Mapped[str] = mapped_column(String(100), nullable=False)
+    target_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    details: Mapped[dict | None] = mapped_column(JSONB)
+    performed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

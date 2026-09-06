@@ -1,4 +1,8 @@
-"""Admin account schemas — mirror the `admins` table (camelCase on the wire)."""
+"""Admin account schemas — mirror the `admins` table (camelCase on the wire).
+
+No credential fields anywhere: `admins` has no password column, Cognito
+holds the credentials and `admins.admin_id` is the Cognito `sub`.
+"""
 
 from typing import Literal
 
@@ -7,10 +11,6 @@ from pydantic import EmailStr, Field
 from app.shared.schemas.user import CamelModel
 
 AdminRole = Literal["super_admin", "support_admin", "moderator"]
-
-# Long enough to resist offline cracking of an argon2 digest without pushing
-# operators toward sticky notes. Enforced here so the rule lives in one place.
-PASSWORD_MIN_LENGTH = 10
 
 
 class AdminOut(CamelModel):
@@ -24,9 +24,12 @@ class AdminOut(CamelModel):
 
 
 class AdminCreate(CamelModel):
+    """Cognito provisions the account and mails a temporary password, so
+    there is no password field here — password policy lives in the user
+    pool (docs/architecture/08-aws-mvp-setup-guide.md §3), not in this app."""
+
     email: EmailStr
     full_name: str = Field(min_length=1, max_length=100)
-    password: str = Field(min_length=PASSWORD_MIN_LENGTH)
     role: AdminRole = "moderator"
 
 
@@ -36,16 +39,7 @@ class AdminUpdate(CamelModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=100)
     role: AdminRole | None = None
     is_active: bool | None = None
-    password: str | None = Field(default=None, min_length=PASSWORD_MIN_LENGTH)
 
 
-class AdminLoginRequest(CamelModel):
-    email: EmailStr
-    password: str
-
-
-class AdminSessionOut(CamelModel):
-    access_token: str
-    """Epoch milliseconds — matches AuthSession.expiresAt on the frontend."""
-    expires_at: int
-    admin: AdminOut
+# AdminLoginRequest/AdminSessionOut are gone: admins sign in at the shared
+# POST /auth/login like every other role, and Cognito issues the token.
