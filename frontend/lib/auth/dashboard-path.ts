@@ -17,8 +17,12 @@ export function dashboardPathForRole(role: UserRole): string {
       return PROVIDER_ROUTES.dashboard;
     case "brand":
       return BRAND_ROUTES.dashboard;
-    case "homeowner":
     case "admin":
+      // Admins have no consumer dashboard -- land them in the (currently
+      // standalone) blog admin section instead. Move this once the real
+      // admin dashboard (feature/adminPage) is merged.
+      return ROUTES.adminBlog;
+    case "homeowner":
     default:
       return ROUTES.dashboard;
   }

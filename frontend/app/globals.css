@@ -636,3 +636,18 @@ body {
   border-radius: 0.75em;
   max-width: 100%;
 }
+
+/* TipTap editor (admin blog editor) -- the .blog-content rules above
+   already style the allowed tags; these add the editing-only affordances
+   (empty-state placeholder, image selection outline). */
+.blog-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+.blog-content img.ProseMirror-selectednode {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
