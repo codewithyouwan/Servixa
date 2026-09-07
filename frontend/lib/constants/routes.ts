@@ -18,6 +18,7 @@ export const ROUTES = {
   adminBlog: "/pages/admin/blog",
   adminBlogNew: "/pages/admin/blog/new",
   adminBlogEdit: (id: string) => `/pages/admin/blog/${id}/edit`,
+  adminBlogPreview: "/pages/admin/blog-preview",
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

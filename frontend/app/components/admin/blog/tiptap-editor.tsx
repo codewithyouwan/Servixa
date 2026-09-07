@@ -10,11 +10,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
+import { DOMParser as ProseMirrorDOMParser } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import TiptapImage from "@tiptap/extension-image";
 import TiptapLink from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
+import { markdownToAllowedHtml } from "@/lib/blog/markdown-to-html";
 import {
   Bold,
   Code,
@@ -43,6 +45,26 @@ interface TiptapEditorProps {
   onChange: (json: Record<string, unknown>, html: string) => void;
   onUploadImage: (file: File) => Promise<string>;
   placeholder?: string;
+}
+
+const FORMATTED_TAG_SELECTOR = "h1,h2,h3,h4,h5,h6,strong,b,em,i,ul,ol,blockquote,code,pre,a,img";
+
+/** True if pasted HTML carries real semantic formatting (a heading, bold,
+ * a list, etc.) rather than just plain text wrapped in styling spans --
+ * macOS puts an `text/html` flavor on the clipboard for almost any copy,
+ * even from a plain-text source, so its mere presence isn't enough to
+ * tell "real rich text from Google Docs/Word" apart from "plain text that
+ * happens to have an html wrapper". */
+function hasRealFormatting(html: string): boolean {
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  return container.querySelector(FORMATTED_TAG_SELECTOR) !== null;
+}
+
+function plainTextFromHtml(html: string): string {
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  return container.textContent ?? "";
 }
 
 function ToolbarButton({
@@ -229,6 +251,32 @@ export function TiptapEditor({ content, onChange, onUploadImage, placeholder }: 
     editorProps: {
       attributes: {
         class: "blog-content min-h-[420px] px-4 py-4 focus:outline-none",
+      },
+      // Real rich text (copied from Google Docs, Word, Notion, a web page)
+      // already carries HTML that TipTap's default handling parses
+      // correctly -- headings, bold, lists, etc. come through untouched.
+      // This only intercepts the other common case: plain text that's
+      // *written* in markdown (a chat reply, a .md file, Slack, Notes)
+      // and would otherwise paste as literal `**`/`#` characters.
+      handlePaste(view, event) {
+        const clipboardData = event.clipboardData;
+        if (!clipboardData) return false;
+
+        const html = clipboardData.getData("text/html");
+        if (html && hasRealFormatting(html)) return false;
+
+        const text = clipboardData.getData("text/plain") || (html ? plainTextFromHtml(html) : "");
+        if (!text.trim()) return false;
+
+        const converted = markdownToAllowedHtml(text);
+        const container = document.createElement("div");
+        container.innerHTML = converted;
+        const slice = ProseMirrorDOMParser.fromSchema(view.state.schema).parseSlice(container, {
+          preserveWhitespace: false,
+        });
+        view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView());
+        event.preventDefault();
+        return true;
       },
     },
     onUpdate: ({ editor: e }) => {

@@ -12,9 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ROUTES } from "@/lib/constants/routes";
+import { authService } from "@/lib/auth";
 import { AdminBlogService } from "@/lib/blog/services/admin-blog-service";
 import type { BlogCategory, BlogPostAdmin, BlogPostInput, BlogTag } from "@/lib/blog/types";
 import { formatDate } from "@/lib/utils/format";
+import { savePreviewDraft, estimateReadingTimeMinutes } from "@/lib/blog/preview-storage";
 import { TiptapEditor } from "./tiptap-editor";
 import { CategoryTagPicker } from "./category-tag-picker";
 import { ScheduleDialog } from "./schedule-dialog";
@@ -49,6 +51,22 @@ export function PostEditor({ initialPost }: PostEditorProps) {
     initialPost?.categories.map((c) => c.id) ?? [],
   );
   const [tagIds, setTagIds] = useState<string[]>(initialPost?.tags.map((t) => t.id) ?? []);
+
+  // Only used to label the "author" line in the Preview view -- the real
+  // author is whatever the backend records on create/publish.
+  const [previewAuthorName, setPreviewAuthorName] = useState(
+    initialPost?.author.name ?? "BestBuild Team",
+  );
+  useEffect(() => {
+    if (initialPost) return; // editing an existing post already has a real author
+    let cancelled = false;
+    authService.getSession().then((session) => {
+      if (!cancelled && session?.user.name) setPreviewAuthorName(session.user.name);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialPost]);
 
   // Stable initial value only -- TiptapEditor owns the live document after
   // mount. contentRef/htmlRef below hold the latest edits for save-time
@@ -128,6 +146,26 @@ export function PostEditor({ initialPost }: PostEditorProps) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handlePreview() {
+    savePreviewDraft({
+      title: title.trim() || "Untitled post",
+      categories: categoryIds
+        .map((id) => categories.find((c) => c.id === id))
+        .filter((c): c is BlogCategory => Boolean(c))
+        .map((c) => ({ id: c.id, name: c.name })),
+      tags: tagIds
+        .map((id) => tags.find((t) => t.id === id))
+        .filter((t): t is BlogTag => Boolean(t))
+        .map((t) => ({ id: t.id, name: t.name })),
+      author: { name: previewAuthorName },
+      publishedAt: post?.publishedAt ?? new Date().toISOString(),
+      readingTimeMinutes: estimateReadingTimeMinutes(htmlRef.current),
+      coverImageUrl: coverImageUrl.trim() || null,
+      contentHtml: htmlRef.current,
+    });
+    window.open(ROUTES.adminBlogPreview, "_blank", "noopener,noreferrer");
   }
 
   const handleSaveDraft = () =>
@@ -246,6 +284,9 @@ export function PostEditor({ initialPost }: PostEditorProps) {
           {notice && !error && <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{notice}</p>}
 
           <div className="flex flex-col gap-2">
+            <Button type="button" variant="outline" onClick={handlePreview}>
+              Preview
+            </Button>
             <Button type="button" onClick={handlePublish} disabled={saving}>
               {post?.status === "published" ? "Update published post" : "Publish now"}
             </Button>
