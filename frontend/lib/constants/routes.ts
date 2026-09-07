@@ -13,6 +13,11 @@ export const ROUTES = {
   digitalTwin: "/pages/dashboard/digital-twin",
   assistant: "/pages/dashboard/assistant",
   settings: "/pages/dashboard/settings",
+  blog: "/pages/blog",
+  blogPost: (slug: string) => `/pages/blog/${slug}`,
+  adminBlog: "/pages/admin/blog",
+  adminBlogNew: "/pages/admin/blog/new",
+  adminBlogEdit: (id: string) => `/pages/admin/blog/${id}/edit`,
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

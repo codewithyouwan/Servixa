@@ -27,3 +27,7 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
+      - key: BLOG_MEDIA_BUCKET
+        value: bestbuild-blog-media
+      - key: SITE_URL
+        value: https://bestbuild.ai

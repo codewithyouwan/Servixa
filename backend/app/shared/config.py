@@ -22,5 +22,13 @@ class Settings:
             "COGNITO_APP_CLIENT_SECRET", ""
         )
 
+        # S3 -- blog cover/inline images (see app/shared/services/s3_client.py).
+        self.blog_media_bucket: str = os.getenv("BLOG_MEDIA_BUCKET", "")
+
+        # Public site origin -- used to build absolute links in the blog
+        # RSS feed. Defaults to the production domain; override locally
+        # via .env if needed.
+        self.site_url: str = os.getenv("SITE_URL", "https://bestbuild.ai")
+
 
 settings = Settings()

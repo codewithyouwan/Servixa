@@ -20,6 +20,7 @@ const NAV_LINKS: NavLink[] = [
   { label: "AI Features", href: "#ai-features" },
   { label: "For Brands", href: "#for-brands" },
   { label: "Pricing", href: "#pricing" },
+  { label: "Blog", href: "/pages/blog" },
   { label: "Careers", href: "/pages/careers" },
 ];
 

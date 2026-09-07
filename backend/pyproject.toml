@@ -20,6 +20,9 @@ dependencies = [
     "python-jose[cryptography]>=3.3",
     # --- Lambda deployment ---
     "mangum>=0.17",
+    # --- Blog ---
+    "python-slugify>=8.0",
+    "bleach>=6.1",
 ]
 
 [tool.uv]

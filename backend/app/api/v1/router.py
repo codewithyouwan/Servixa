@@ -7,6 +7,7 @@ all of them.
 
 from fastapi import APIRouter
 
+from app.blog.routers import admin_blog, blog
 from app.brand.routers import brand
 from app.homeowner.routers import (
     ai_assistant,
@@ -41,3 +42,7 @@ api_router.include_router(crm.router)
 
 # Brand module
 api_router.include_router(brand.router)
+
+# Blog module (public + admin-only write endpoints)
+api_router.include_router(blog.router)
+api_router.include_router(admin_blog.router)

@@ -130,3 +130,152 @@ class Project(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+# Matches `CREATE TYPE blog_post_status AS ENUM (...)` in
+# db/migrations/002_blog.sql.
+BlogPostStatusEnum = Enum(
+    "draft",
+    "scheduled",
+    "published",
+    "archived",
+    name="blog_post_status",
+    create_type=False,
+)
+
+
+# Read-only mapping of the `admins` table (schema.sql) -- used for
+# joins in blog queries (author name on posts/revisions). Auth itself
+# still resolves admins via the raw query in
+# app/shared/dependencies/auth.py._load_admin; this model is additive,
+# not a replacement, so that existing code path is untouched.
+AdminRoleEnum = Enum(
+    "super_admin",
+    "support_admin",
+    "moderator",
+    name="admin_role",
+    create_type=False,
+)
+
+
+class Admin(Base):
+    __tablename__ = "admins"
+
+    admin_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    admin_email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    full_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    role: Mapped[str] = mapped_column(AdminRoleEnum, default="moderator")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class BlogPost(Base):
+    __tablename__ = "blog_posts"
+
+    post_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    excerpt: Mapped[str | None] = mapped_column(String(400))
+    # TipTap's structured document -- source of truth. content_html is
+    # rendered client-side (editor.getHTML()) and sanitized server-side
+    # before storage; never hand-edited.
+    content_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    content_html: Mapped[str] = mapped_column(Text, nullable=False)
+    cover_image_url: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(BlogPostStatusEnum, default="draft")
+    author_admin_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("admins.admin_id"), nullable=False
+    )
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    view_count: Mapped[int] = mapped_column(BigInteger, default=0)
+    reading_time_minutes: Mapped[int] = mapped_column(SmallInteger, default=1)
+    seo_title: Mapped[str | None] = mapped_column(String(200))
+    seo_description: Mapped[str | None] = mapped_column(String(300))
+    og_image_url: Mapped[str | None] = mapped_column(Text)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    # search_vector intentionally not mapped here -- trigger-maintained
+    # in Postgres, queried via a raw `@@ plainto_tsquery(...)` expression
+    # in db/repository/blog.py rather than an ORM column.
+
+
+class BlogCategory(Base):
+    __tablename__ = "blog_categories"
+
+    category_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class BlogTag(Base):
+    __tablename__ = "blog_tags"
+
+    tag_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    name: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class BlogPostCategory(Base):
+    __tablename__ = "blog_post_categories"
+
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("blog_posts.post_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    category_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("blog_categories.category_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+
+class BlogPostTag(Base):
+    __tablename__ = "blog_post_tags"
+
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("blog_posts.post_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    tag_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("blog_tags.tag_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+
+class BlogPostRevision(Base):
+    __tablename__ = "blog_post_revisions"
+
+    revision_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("blog_posts.post_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    content_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    edited_by_admin_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("admins.admin_id"), nullable=False
+    )
+    edited_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
