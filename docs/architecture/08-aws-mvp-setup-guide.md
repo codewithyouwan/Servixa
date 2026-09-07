@@ -187,7 +187,20 @@ VALUES ('<SUB>', 'admin@servixa.com', 'Founder Admin', 'super_admin');
 "
 ```
 
-They'll be asked to set a permanent password on first login.
+They'll be asked to set a permanent password on first login: `/auth/login`
+now returns `{ "challenge": "NEW_PASSWORD_REQUIRED", "session": "<token>" }`
+instead of tokens when the account is still in this state, and
+`/auth/complete-new-password` (email + newPassword + that session) finishes
+it and returns normal tokens (see `cognito_client.complete_new_password`).
+
+**There's no login-page UI for that challenge yet**, so until one exists,
+skip the temporary-password wait entirely for a new admin by setting a
+permanent password right after creating them:
+```bash
+aws cognito-idp admin-set-user-password   --user-pool-id <POOL_ID> --username admin@servixa.com   --password '<PERMANENT_PASSWORD>' --permanent
+```
+That leaves the account `CONFIRMED` instead of `FORCE_CHANGE_PASSWORD`, so
+first login goes straight through `/auth/login` with no challenge at all.
 
 ## 5. Local dev environment — test before touching Lambda
 

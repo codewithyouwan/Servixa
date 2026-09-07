@@ -94,6 +94,23 @@ class TokenPair(CamelModel):
     expires_in: int
 
 
+class NewPasswordRequiredResponse(CamelModel):
+    """What /login returns instead of tokens when the account is still in
+    Cognito's FORCE_CHANGE_PASSWORD state (a temporary password that's
+    never been changed -- see cognito_client.NewPasswordRequiredError).
+    The frontend should prompt for a new password and call
+    /auth/complete-new-password with this `session` value."""
+
+    challenge: Literal["NEW_PASSWORD_REQUIRED"] = "NEW_PASSWORD_REQUIRED"
+    session: str
+
+
+class CompleteNewPasswordRequest(CamelModel):
+    email: str
+    new_password: str
+    session: str
+
+
 class RefreshRequest(CamelModel):
     email: str
     refresh_token: str
@@ -159,10 +176,35 @@ async def resend_code(body: ResendCodeRequest) -> ApiResponse[dict[str, bool]]:
     return ApiResponse(data={"sent": True})
 
 
-@router.post("/login", response_model=ApiResponse[TokenPair], response_model_by_alias=True)
-async def login(body: LoginRequest) -> ApiResponse[TokenPair]:
+LoginResult = TokenPair | NewPasswordRequiredResponse
+
+
+@router.post("/login", response_model=ApiResponse[LoginResult], response_model_by_alias=True)
+async def login(body: LoginRequest) -> ApiResponse[LoginResult]:
     try:
         tokens = cognito_client.login(body.email, body.password)
+    except cognito_client.NewPasswordRequiredError as exc:
+        return ApiResponse(data=NewPasswordRequiredResponse(session=exc.session))
+    except ClientError as exc:
+        _raise_from_cognito(exc)
+    return ApiResponse(data=TokenPair(**tokens))
+
+
+@router.post(
+    "/complete-new-password",
+    response_model=ApiResponse[TokenPair],
+    response_model_by_alias=True,
+)
+async def complete_new_password(
+    body: CompleteNewPasswordRequest,
+) -> ApiResponse[TokenPair]:
+    """Finishes the NEW_PASSWORD_REQUIRED challenge /login returned. The
+    frontend calls this instead of /login once the person has entered a
+    new password, passing back the `session` value from that response."""
+    try:
+        tokens = cognito_client.complete_new_password(
+            body.email, body.new_password, body.session
+        )
     except ClientError as exc:
         _raise_from_cognito(exc)
     return ApiResponse(data=TokenPair(**tokens))

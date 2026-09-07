@@ -70,6 +70,30 @@ def resend_confirmation_code(email: str) -> None:
     )
 
 
+class NewPasswordRequiredError(Exception):
+    """Raised when Cognito returns the NEW_PASSWORD_REQUIRED challenge
+    instead of tokens -- happens for any account still in
+    FORCE_CHANGE_PASSWORD state (e.g. an admin created via
+    AdminCreateUser with a temporary password, per the AWS setup guide's
+    original §4 instructions). Carries the `Session` token the follow-up
+    RespondToAuthChallenge call needs; the caller can't retry with the
+    same password; a new one has to be set via complete_new_password().
+    """
+
+    def __init__(self, session: str):
+        self.session = session
+        super().__init__("NEW_PASSWORD_REQUIRED challenge returned by Cognito")
+
+
+def _tokens_from_auth_result(result: dict) -> dict:
+    return {
+        "access_token": result["AccessToken"],
+        "id_token": result["IdToken"],
+        "refresh_token": result.get("RefreshToken"),
+        "expires_in": result["ExpiresIn"],
+    }
+
+
 def login(email: str, password: str) -> dict:
     resp = _client.initiate_auth(
         ClientId=settings.cognito_app_client_id,
@@ -80,13 +104,25 @@ def login(email: str, password: str) -> dict:
             "SECRET_HASH": _secret_hash(email),
         },
     )
-    result = resp["AuthenticationResult"]
-    return {
-        "access_token": result["AccessToken"],
-        "id_token": result["IdToken"],
-        "refresh_token": result["RefreshToken"],
-        "expires_in": result["ExpiresIn"],
-    }
+    if resp.get("ChallengeName") == "NEW_PASSWORD_REQUIRED":
+        raise NewPasswordRequiredError(session=resp["Session"])
+    return _tokens_from_auth_result(resp["AuthenticationResult"])
+
+
+def complete_new_password(email: str, new_password: str, session: str) -> dict:
+    """Finishes the NEW_PASSWORD_REQUIRED challenge login() raised, and
+    returns the same token shape login() would have on a normal login."""
+    resp = _client.respond_to_auth_challenge(
+        ClientId=settings.cognito_app_client_id,
+        ChallengeName="NEW_PASSWORD_REQUIRED",
+        Session=session,
+        ChallengeResponses={
+            "USERNAME": email,
+            "NEW_PASSWORD": new_password,
+            "SECRET_HASH": _secret_hash(email),
+        },
+    )
+    return _tokens_from_auth_result(resp["AuthenticationResult"])
 
 
 def refresh(refresh_token: str, email: str) -> dict:
