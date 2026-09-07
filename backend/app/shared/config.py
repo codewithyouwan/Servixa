@@ -7,9 +7,15 @@ class Settings:
     """Minimal settings object; swap for pydantic-settings when config grows."""
 
     def __init__(self) -> None:
-        self.cors_origins: list[str] = os.getenv(
-            "CORS_ORIGINS", "http://localhost:3000"
-        ).split(",")
+        # Origins are compared verbatim against the browser's Origin header,
+        # so strip whitespace and drop empties -- a stray space or trailing
+        # comma in the deploy env would otherwise make the origin unmatchable
+        # and every CORS preflight would 400.
+        self.cors_origins: list[str] = [
+            origin.strip()
+            for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+            if origin.strip()
+        ]
 
         # AWS Cognito — see docs/architecture/08-aws-mvp-setup-guide.md.
         # No JWT_SECRET/jwt_algorithm anymore: Cognito signs tokens with
