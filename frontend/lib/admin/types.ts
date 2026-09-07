@@ -49,7 +49,8 @@ export interface ManagedUser {
   name: string;
   email: string;
   type: UserType;
-  country: string;
+  /** Null until the user completes their profile — the column is nullable. */
+  country: string | null;
   address: Partial<UserAddress>;
   isDeleted: boolean;
   createdAt: string;

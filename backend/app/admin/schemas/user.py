@@ -37,7 +37,9 @@ class ManagedUserOut(CamelModel):
     name: str
     email: str
     type: UserType
-    country: str
+    # Nullable, like the column: users.user_country is filled in at profile
+    # completion, so an account created at signup has none yet.
+    country: str | None = None
     address: dict[str, Any]
     is_deleted: bool
     created_at: str

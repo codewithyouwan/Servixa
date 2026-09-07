@@ -71,7 +71,9 @@ function fromUser(user: ManagedUser): UserFormState {
     name: user.name,
     email: user.email,
     type: user.type,
-    country: user.country,
+    // The form's Country select needs a value; fall back to EMPTY's default
+    // for an account that has not set one yet.
+    country: user.country ?? EMPTY.country,
     line1: user.address.line1 ?? "",
     city: user.address.city ?? "",
     state: user.address.state ?? "",
