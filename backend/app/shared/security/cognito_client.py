@@ -112,7 +112,7 @@ def logout(access_token: str) -> None:
     _client.global_sign_out(AccessToken=access_token)
 
 
-def admin_create_user(email: str, name: str) -> str:
+def admin_create_user(email: str, name: str, send_invite: bool = True) -> str:
     """Create a user without the self-signup flow. Returns the `sub`.
 
     This is the API form of the blueprint's `aws cognito-idp
@@ -122,9 +122,14 @@ def admin_create_user(email: str, name: str) -> str:
     ever handles another operator's credentials. The email is marked
     verified because an invited account has no self-serve confirm step.
 
+    `send_invite=False` suppresses that email — for the bootstrap admin,
+    whose password comes from the environment instead (see
+    scripts/seed_super_admin.py), so seeding never mails a stranger.
+
     No SECRET_HASH here: admin_* APIs authenticate with the caller's AWS
     credentials, not the app client secret.
     """
+    kwargs = {} if send_invite else {"MessageAction": "SUPPRESS"}
     resp = _client.admin_create_user(
         UserPoolId=settings.cognito_user_pool_id,
         Username=email,
@@ -133,6 +138,7 @@ def admin_create_user(email: str, name: str) -> str:
             {"Name": "email", "Value": email},
             {"Name": "email_verified", "Value": "true"},
         ],
+        **kwargs,
     )
     for attribute in resp["User"]["Attributes"]:
         if attribute["Name"] == "sub":
@@ -158,3 +164,18 @@ def get_user_sub(email: str) -> str:
         if attribute["Name"] == "sub":
             return attribute["Value"]
     raise KeyError(f"Cognito user {email} has no sub attribute")
+
+
+def admin_set_password(email: str, password: str, permanent: bool = True) -> None:
+    """Set a user's password directly.
+
+    Only the bootstrap path uses this: an account created with the invite
+    email suppressed has a temporary password nobody has seen, so one has
+    to be set for it to be usable at all.
+    """
+    _client.admin_set_user_password(
+        UserPoolId=settings.cognito_user_pool_id,
+        Username=email,
+        Password=password,
+        Permanent=permanent,
+    )

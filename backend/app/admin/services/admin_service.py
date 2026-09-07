@@ -8,6 +8,7 @@ then records the profile row. There is no password column left to read,
 so nothing in this module can leak one.
 """
 
+import logging
 import uuid
 from datetime import datetime, timezone
 
@@ -26,6 +27,8 @@ TABLE = "admins"
 
 # The Cognito group whose members this app treats as back-office staff.
 ADMIN_GROUP = "admin"
+
+log = logging.getLogger(__name__)
 
 
 def to_out(row: Admin) -> AdminOut:
@@ -115,7 +118,15 @@ async def create_admin(db: AsyncSession, payload: AdminCreate, actor: AdminOut) 
         try:
             cognito_client.admin_delete_user(email)
         except ClientError:
-            pass
+            # Needs cognito-idp:AdminDeleteUser, which the deployed IAM user
+            # does not hold today — so log the orphan loudly rather than
+            # swallowing it. The account can sign in but has no admin row,
+            # and every request it makes will 401 until one is created or the
+            # Cognito user is removed by hand.
+            log.error(
+                "orphaned Cognito account %s: the admin row failed and it could "
+                "not be deleted again", email, exc_info=True,
+            )
         raise
 
     await audit_service.record(

@@ -11,6 +11,7 @@ provisions the Cognito user too, the same way /auth/register does for
 self-serve signup.
 """
 
+import logging
 import uuid
 from datetime import datetime, timezone
 
@@ -29,6 +30,8 @@ from db.models import Company, ServiceProvider, User
 TABLE = "users"
 PROVIDER_TABLE = "service_providers"
 COMPANY_TABLE = "company"
+
+log = logging.getLogger(__name__)
 
 
 def _normalize_email(email: str) -> str:
@@ -210,7 +213,15 @@ async def create_user(
         try:
             cognito_client.admin_delete_user(email)
         except ClientError:
-            pass
+            # Needs cognito-idp:AdminDeleteUser, which the deployed IAM user
+            # does not hold today — so log the orphan loudly rather than
+            # swallowing it. The account can sign in but has no user row,
+            # and every request it makes will 401 until one is created or the
+            # Cognito user is removed by hand.
+            log.error(
+                "orphaned Cognito account %s: the user row failed and it could "
+                "not be deleted again", email, exc_info=True,
+            )
         raise
 
     await audit_service.record(
