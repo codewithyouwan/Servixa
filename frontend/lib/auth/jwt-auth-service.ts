@@ -60,8 +60,8 @@ async function raw<T>(
     let message = res.statusText;
     try {
       const body = await res.json();
-      code = body?.error?.code ?? code;
-      message = body?.error?.message ?? message;
+      code = body?.detail?.error?.code ?? code;
+      message = body?.detail?.error?.message ?? message;
     } catch {
       // non-JSON error body — keep defaults
     }

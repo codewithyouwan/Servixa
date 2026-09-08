@@ -11,9 +11,19 @@ from sqlalchemy.orm import DeclarativeBase
 
 # 1. Fetch connection string (Prefer environment variables)
 # Format: postgresql+asyncpg://user:password@host:port/dbname
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/mydb"
+# A bare `postgresql://` (what docker-compose.yml/.env.example/RDS-style
+# connection strings typically ship, since they're driver-agnostic) is
+# normalized to the asyncpg driver — without this, create_async_engine
+# silently falls back to the sync psycopg2 driver (which isn't installed
+# at all) and crashes on the very first connection.
+_raw_database_url = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/mydb",
+)
+DATABASE_URL = (
+    _raw_database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if _raw_database_url.startswith("postgresql://")
+    else _raw_database_url
 )
 
 # 2. Base class for SQLAlchemy ORM models

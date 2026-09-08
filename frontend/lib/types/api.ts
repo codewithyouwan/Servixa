@@ -14,8 +14,14 @@ export interface ApiSuccess<T> {
   meta?: ApiMeta;
 }
 
+/**
+ * FastAPI wraps HTTPException(detail=...) as {"detail": <detail>} — every
+ * router in this app passes detail={"error": {code, message}}, so the raw
+ * response body is {"detail": {"error": {...}}}, not {"error": {...}} at
+ * the top level.
+ */
 export interface ApiErrorBody {
-  error: { code: string; message: string };
+  detail: { error: { code: string; message: string } };
 }
 
 export class ApiError extends Error {

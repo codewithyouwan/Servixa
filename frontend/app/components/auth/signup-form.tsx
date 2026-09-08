@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,8 @@ export function SignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
   const router = useRouter();
+  // Referral link: /pages/auth/signup?ref=CODE — read once, not user-editable.
+  const referralCode = useSearchParams().get("ref") ?? undefined;
 
   // Prefill the ZIP from the saved default (set via search bars) — must run
   // in an effect because localStorage doesn't exist during server render.
@@ -107,6 +109,7 @@ export function SignupForm() {
         // Seeds users.user_addr with {"zip_code": ...} so the account has a
         // location from day one (the AI assistant defaults the job there).
         zipCode: normalizePostalCode(zip),
+        referralCode,
       });
       // Save as the profile default — search bars prefill from this.
       saveZip(zip);

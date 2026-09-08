@@ -1,8 +1,8 @@
 """v1 API router — aggregates all module routers.
 
 Modules stay independent: shared (auth/users/notifications), homeowner,
-service_provider, and brand each own their routers; only this file knows
-all of them.
+service_provider, brand, and wallet each own their routers; only this file
+knows all of them.
 """
 
 from fastapi import APIRouter
@@ -20,6 +20,7 @@ from app.homeowner.routers import (
 )
 from app.service_provider.routers import crm
 from app.shared.routers import auth, notifications, users
+from app.wallet.routers import wallet
 
 api_router = APIRouter()
 
@@ -46,3 +47,5 @@ api_router.include_router(brand.router)
 # Blog module (public + admin-only write endpoints)
 api_router.include_router(blog.router)
 api_router.include_router(admin_blog.router)
+# Wallet module (homeowner + service_provider only, see require_wallet_owner)
+api_router.include_router(wallet.router)
