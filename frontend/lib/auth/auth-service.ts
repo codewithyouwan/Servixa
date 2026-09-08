@@ -36,6 +36,8 @@ export interface RegisterInput {
    * address is collected later from the dashboard.
    */
   zipCode?: string;
+  /** From a referral link (?ref=CODE) — credits the referrer's wallet on signup. */
+  referralCode?: string;
 }
 
 export interface RegisterResult {

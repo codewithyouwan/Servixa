@@ -5,10 +5,12 @@ import type {
   BrandDashboard,
   BrandDownload,
   BrandOverview,
+  BrandPlan,
   BrandProduct,
   BrandProject,
   Dealer,
   FaqItem,
+  Review,
   SupportTicket,
 } from "@/lib/brand/types";
 import { BrandService } from "@/lib/brand/services/brand-service";
@@ -23,6 +25,8 @@ export interface BrandData {
   faqs: FaqItem[];
   tickets: SupportTicket[];
   dashboard: BrandDashboard;
+  plan: BrandPlan;
+  reviews: Review[];
 }
 
 /** Fetches every Brand Profile section in parallel; each page reads only
@@ -30,7 +34,7 @@ export interface BrandData {
  * mutation. */
 export function useBrand(): AsyncState<BrandData> {
   const fetcher = useCallback(async (signal: AbortSignal) => {
-    const [overview, products, projects, downloads, dealers, faqs, tickets, dashboard] =
+    const [overview, products, projects, downloads, dealers, faqs, tickets, dashboard, plan, reviews] =
       await Promise.all([
         BrandService.overview(signal),
         BrandService.products(signal),
@@ -40,8 +44,10 @@ export function useBrand(): AsyncState<BrandData> {
         BrandService.faqs(signal),
         BrandService.tickets(signal),
         BrandService.dashboard(signal),
+        BrandService.plan(signal),
+        BrandService.reviews(signal),
       ]);
-    return { overview, products, projects, downloads, dealers, faqs, tickets, dashboard };
+    return { overview, products, projects, downloads, dealers, faqs, tickets, dashboard, plan, reviews };
   }, []);
   return useAsync(fetcher);
 }

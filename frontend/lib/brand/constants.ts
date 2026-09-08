@@ -12,6 +12,7 @@ export const BRAND_ROUTES = {
   downloads: "/pages/brand/downloads",
   dealers: "/pages/brand/dealers",
   support: "/pages/brand/support",
+  plan: "/pages/brand/plan",
 } as const;
 
 interface CategoryConfig {

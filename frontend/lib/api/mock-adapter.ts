@@ -16,6 +16,7 @@ import { resolveHomeownerMock } from "@/lib/homeowner/mocks/handlers";
 import { resolveProviderMock } from "@/lib/provider/mocks/handlers";
 import { resolveBrandMock } from "@/lib/brand/mocks/handlers";
 import { resolveBlogMock } from "@/lib/blog/mocks/handlers";
+import { resolveWalletMock } from "@/lib/wallet/mocks/handlers";
 
 const LATENCY_MS = 550;
 
@@ -23,7 +24,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type MockResolver = (path: string, method: string, body?: unknown) => unknown;
 
-const MODULE_RESOLVERS: MockResolver[] = [resolveHomeownerMock, resolveProviderMock, resolveBrandMock, resolveBlogMock];
+
+const MODULE_RESOLVERS: MockResolver[] = [resolveHomeownerMock, resolveProviderMock, resolveBrandMock, resolveBlogMock, resolveWalletMock];
+
 
 async function resolveShared(path: string, method: string): Promise<unknown> {
   if (method === "GET") {

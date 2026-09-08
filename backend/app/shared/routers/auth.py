@@ -13,18 +13,26 @@ from typing import Literal
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.shared.schemas.common import ApiResponse
 from app.shared.schemas.user import CamelModel
 from app.shared.security import cognito_client
+from app.wallet.services import wallet_service
 from db.database import get_db
+from db.models import User
 from db.repository.users import create_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 # Self-serve roles only — "admin" deliberately isn't a valid value here.
 SelfServeRole = Literal["homeowner", "service_provider", "brand"]
+
+# Wallets (and therefore referral rewards) aren't provisioned for brand
+# accounts — see require_wallet_owner and db/migrations/005_wallet_referrals.sql.
+WALLET_ELIGIBLE_ROLES = ("homeowner", "service_provider")
+REFERRAL_REWARD_AMOUNT = 2500
 
 _COGNITO_ERROR_STATUS = {
     "UsernameExistsException": status.HTTP_409_CONFLICT,
@@ -65,6 +73,7 @@ class RegisterRequest(CamelModel):
     # on purpose: the form accepts international postal codes too, and an
     # older client that doesn't send one must still be able to register.
     zip_code: str | None = Field(default=None, max_length=12)
+    referral_code: str | None = None
 
 
 class RegisterResponse(CamelModel):
@@ -137,7 +146,7 @@ async def register(
 
     # Base profile row only — service_providers/company rows are created
     # during profile completion, not here (see the AWS blueprint §2).
-    await create_user(
+    user = await create_user(
         db,
         user_id=uuid.UUID(user_sub),
         name=body.name,
@@ -146,6 +155,18 @@ async def register(
         created_by=body.email,
         zip_code=_normalize_zip(body.zip_code),
     )
+
+    if body.role in WALLET_ELIGIBLE_ROLES:
+        await wallet_service.get_or_create_wallet(db, user.user_id)
+        user.referral_code = await wallet_service.generate_referral_code(db)
+
+        if body.referral_code:
+            referrer = await db.execute(
+                select(User).where(User.referral_code == body.referral_code, User.user_id != user.user_id)
+            )
+            referrer_user = referrer.scalar_one_or_none()
+            if referrer_user is not None and referrer_user.user_type in WALLET_ELIGIBLE_ROLES:
+                await wallet_service.record_referral(db, referrer_user.user_id, user.user_id, REFERRAL_REWARD_AMOUNT)
 
     return ApiResponse(
         data=RegisterResponse(user_id=user_sub, email=body.email)

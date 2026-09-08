@@ -11,4 +11,6 @@ export const BRAND_ENDPOINTS = {
   tickets: "/brand/tickets",
   ticketResolve: (id: string) => `/brand/tickets/${id}/resolve`,
   dashboard: "/brand/dashboard",
+  plan: "/brand/plan",
+  reviews: "/brand/reviews",
 } as const;

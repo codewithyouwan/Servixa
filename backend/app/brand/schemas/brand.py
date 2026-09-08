@@ -156,8 +156,39 @@ class BrandDashboardSummary(CamelModel):
     download_count: int
     dealer_count: int
     open_tickets: int
+    avg_rating: float
+    review_count: int
 
 
 class BrandDashboardOut(CamelModel):
     summary: BrandDashboardSummary
     recent_tickets: list[SupportTicketOut]
+
+
+class PlanFeature(CamelModel):
+    label: str
+    included: bool = True
+
+
+class BrandPlanOut(CamelModel):
+    """Backed by subscriptions + user_subscriptions (schema.sql's SUBSCRIPTIONS
+    region) — a single "Basic" tier for now, feature checklist stored in
+    subscriptions.metadata rather than a features table."""
+
+    name: str
+    price: int
+    billing_period: str
+    status: Literal["active", "expired"]
+    features: list[PlanFeature]
+    started_at: str
+    ends_at: str
+
+
+class ReviewOut(CamelModel):
+    """Backed by `ratings` (rated_for = the brand's company_id)."""
+
+    id: str
+    rating: int
+    text: str | None = None
+    reviewer_name: str
+    created_at: str
